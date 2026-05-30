@@ -1,8 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 
 import { prisma } from "./prisma";
+import { verifyPassword } from "./password";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error("Invalid credentials");
         }
 
         const user = await prisma.user.findUnique({
@@ -22,16 +22,16 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          return null;
+          throw new Error("Invalid credentials");
         }
 
-        const isValid = await bcrypt.compare(
+        const isValid = await verifyPassword(
           credentials.password,
           user.password
         );
 
         if (!isValid) {
-          return null;
+          throw new Error("Invalid credentials");
         }
 
         return {

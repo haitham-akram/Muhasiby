@@ -30,3 +30,8 @@ npm run dev
 ```bash
 npx prisma generate
 ```
+
+## Passwords
+
+User passwords must be hashed before storing them in the database. Use the
+helpers in `lib/password.ts` when creating or seeding users.
