@@ -1,0 +1,9 @@
+{
+  "appName": "Cashier Ledger",
+  "login": {
+    "title": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "button": "Sign in"
+  }
+}
