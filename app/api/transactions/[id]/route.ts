@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { TransactionUpdateSchema } from "@/lib/validations";
+import { TransactionSchema, TransactionUpdateSchema } from "@/lib/validations";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -36,12 +36,19 @@ export async function PATCH(
     return NextResponse.json({ message: "Transaction not found" }, { status: 404 });
   }
 
-  const nextStatus = parsed.data.status ?? existing.status;
-  const nextPhone = parsed.data.buyerPhone ?? existing.buyerPhone;
+  const merged = {
+    buyerName: parsed.data.buyerName ?? existing.buyerName,
+    items: parsed.data.items ?? existing.items,
+    paymentMethod: parsed.data.paymentMethod ?? existing.paymentMethod,
+    amount: parsed.data.amount ?? existing.amount,
+    status: parsed.data.status ?? existing.status,
+    buyerPhone: parsed.data.buyerPhone ?? existing.buyerPhone ?? undefined,
+  };
 
-  if (nextStatus === "PENDING" && (!nextPhone || nextPhone.length < 7)) {
+  const mergedValidation = TransactionSchema.safeParse(merged);
+  if (!mergedValidation.success) {
     return NextResponse.json(
-      { message: "Phone is required for pending payments" },
+      { errors: mergedValidation.error.flatten() },
       { status: 400 }
     );
   }

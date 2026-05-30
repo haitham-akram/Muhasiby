@@ -24,7 +24,7 @@ const pendingPhoneRefine = (
     } else if (data.buyerPhone && data.buyerPhone.length < 7) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Phone is required for pending payments",
+        message: "Phone must be at least 7 digits for pending payments",
         path: ["buyerPhone"],
       });
     }

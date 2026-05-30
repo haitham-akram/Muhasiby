@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-function getDateRange(date: Date) {
+function getDayBoundaries(date: Date) {
   return {
     start: startOfDay(date),
     end: endOfDay(date),
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   if (dateParam || todayParam === "true") {
     const targetDate = dateParam ? new Date(dateParam) : new Date();
-    const { start, end } = getDateRange(targetDate);
+    const { start, end } = getDayBoundaries(targetDate);
     const session = await prisma.session.findFirst({
       where: {
         userId,
@@ -58,7 +58,7 @@ export async function POST() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { start, end } = getDateRange(new Date());
+  const { start, end } = getDayBoundaries(new Date());
   const existingSession = await prisma.session.findFirst({
     where: {
       userId,
