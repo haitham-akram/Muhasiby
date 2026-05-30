@@ -18,3 +18,19 @@ export const TransactionSchema = z
       });
     }
   });
+
+export const TransactionCreateSchema = TransactionSchema.extend({
+  sessionId: z.string().min(1),
+});
+
+export const TransactionUpdateSchema = TransactionSchema.partial().superRefine(
+  (data, ctx) => {
+    if (data.status === "PENDING" && data.buyerPhone && data.buyerPhone.length < 7) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Phone is required for pending payments",
+        path: ["buyerPhone"],
+      });
+    }
+  }
+);
