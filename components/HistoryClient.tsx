@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import FilterBar from "@/components/FilterBar";
 import FilterChip from "@/components/FilterChip";
@@ -29,19 +29,6 @@ export default function HistoryClient() {
     void loadSessions();
   }, []);
 
-  useEffect(() => {
-    if (!hasFilters) {
-      setResults([]);
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      void fetchResults();
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [search, status, method, from, to, hasFilters]);
-
   async function loadSessions() {
     setError(null);
     try {
@@ -56,7 +43,7 @@ export default function HistoryClient() {
     }
   }
 
-  async function fetchResults() {
+  const fetchResults = useCallback(async () => {
     setError(null);
     try {
       const params = new URLSearchParams();
@@ -75,7 +62,20 @@ export default function HistoryClient() {
     } catch {
       setError("Unable to load filtered results.");
     }
-  }
+  }, [search, status, method, from, to]);
+
+  useEffect(() => {
+    if (!hasFilters) {
+      setResults([]);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      void fetchResults();
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [search, status, method, from, to, hasFilters, fetchResults]);
 
   async function toggleSession(sessionId: string) {
     if (expandedSessionId === sessionId) {

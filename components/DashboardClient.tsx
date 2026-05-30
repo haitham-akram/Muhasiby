@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import TransactionForm from "@/components/TransactionForm";
 import TransactionTable from "@/components/TransactionTable";
@@ -23,11 +23,16 @@ export default function DashboardClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void loadSession();
+  const loadTransactions = useCallback(async (sessionId: string) => {
+    const response = await fetch(`/api/transactions?sessionId=${sessionId}`);
+    if (!response.ok) {
+      throw new Error("Failed to load transactions");
+    }
+    const data = await response.json();
+    setTransactions(data.transactions ?? []);
   }, []);
 
-  async function loadSession() {
+  const loadSession = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -47,16 +52,11 @@ export default function DashboardClient() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [loadTransactions]);
 
-  async function loadTransactions(sessionId: string) {
-    const response = await fetch(`/api/transactions?sessionId=${sessionId}`);
-    if (!response.ok) {
-      throw new Error("Failed to load transactions");
-    }
-    const data = await response.json();
-    setTransactions(data.transactions ?? []);
-  }
+  useEffect(() => {
+    void loadSession();
+  }, [loadSession]);
 
   async function handleOpenSession() {
     setIsCreatingSession(true);
