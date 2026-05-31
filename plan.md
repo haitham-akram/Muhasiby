@@ -9,11 +9,12 @@
 ## 1. Project Overview
 
 The app replaces a cashier's handwritten book. For each sale, the cashier records:
+
 - Buyer's name
 - Items purchased
 - Payment method (Bank Transfer, Wallet, Cash, or any custom type)
 - Payment status (Confirmed, Pending, Cancelled)
-- Phone number *(required when status is Pending)*
+- Phone number _(required when status is Pending)_
 
 At the end of each day, the cashier opens the **Daily Summary** to verify that all payments are received and confirmed. Pending transfers are flagged with the buyer's phone number so the cashier can follow up. The full day's data can be exported as a **PDF**.
 
@@ -21,17 +22,17 @@ At the end of each day, the cashier opens the **Daily Summary** to verify that a
 
 ## 2. Tech Stack
 
-| Layer | Choice | Reason |
-|---|---|---|
-| Framework | Next.js 14 (App Router) | Your stack, monorepo, SSR + API routes |
-| Language | TypeScript | Type safety across the board |
-| Database | PostgreSQL | Relational, reliable, great for daily sessions |
-| ORM | **Prisma** | Best DX for Next.js, auto-generated types, easy migrations |
-| Auth | NextAuth.js (Credentials) | Email + password login, session-based |
-| Styling | Tailwind CSS | Fast, utility-first, Uber-like precision |
-| PDF Export | `react-pdf` / `@react-pdf/renderer` | Render PDFs from React components |
-| State | React `useState` + Server Actions | Minimal, no Redux needed |
-| Form handling | `react-hook-form` + `zod` | Validation + TypeScript types from schema |
+| Layer         | Choice                              | Reason                                                     |
+| ------------- | ----------------------------------- | ---------------------------------------------------------- |
+| Framework     | Next.js 14 (App Router)             | Your stack, monorepo, SSR + API routes                     |
+| Language      | TypeScript                          | Type safety across the board                               |
+| Database      | PostgreSQL                          | Relational, reliable, great for daily sessions             |
+| ORM           | **Prisma**                          | Best DX for Next.js, auto-generated types, easy migrations |
+| Auth          | NextAuth.js (Credentials)           | Email + password login, session-based                      |
+| Styling       | Tailwind CSS                        | Fast, utility-first, Uber-like precision                   |
+| PDF Export    | `react-pdf` / `@react-pdf/renderer` | Render PDFs from React components                          |
+| State         | React `useState` + Server Actions   | Minimal, no Redux needed                                   |
+| Form handling | `react-hook-form` + `zod`           | Validation + TypeScript types from schema                  |
 
 > **Why Prisma over Drizzle?** Prisma has a more mature ecosystem, excellent TypeScript inference, and the Prisma Studio GUI is very useful during development. For a project of this scope it's the safest choice.
 
@@ -135,6 +136,7 @@ enum Status {
 ## 5. Pages & Features
 
 ### 5.1 Login Page `/login`
+
 - Email + password form
 - NextAuth credentials provider
 - Redirect to dashboard on success
@@ -147,11 +149,13 @@ enum Status {
 This is the **primary work screen** the cashier uses all day.
 
 **Top section — Session header:**
+
 - Today's date (displayed prominently)
 - "Open Session" button if no session exists for today
 - Session status (Open / Closed)
 
 **Middle section — Add Transaction form:**
+
 - Buyer Name (text input)
 - Items Purchased (textarea)
 - Payment Method (free-text input with autocomplete suggestions: Bank Transfer, Wallet, Cash)
@@ -161,6 +165,7 @@ This is the **primary work screen** the cashier uses all day.
 - Submit button → adds entry to the live table below
 
 **Bottom section — Today's transaction table:**
+
 - Columns: #, Buyer, Items, Method, Amount, Status, Phone, Actions
 - Inline status update (click badge to toggle)
 - Delete button per row
@@ -171,51 +176,61 @@ This is the **primary work screen** the cashier uses all day.
 ### 5.3 End-of-Day Summary `/summary`
 
 **Stats cards row:**
+
 - Total Transactions
 - Total Confirmed Amount
 - Total Pending Amount
 - Total Cancelled Amount
 
 **Breakdown by payment method:**
+
 - Mini cards: "Bank Transfer — 3,200 JD", "Wallet — 800 JD", "Cash — 500 JD"
 
 **Pending follow-up list:**
+
 - Table of all PENDING transactions with buyer name + phone number
 - "Mark as Confirmed" button per row
 
 **Recent transactions table:**
+
 - Full list of today's transactions, sortable by status
 
 **Export buttons:**
+
 - "Export Daily Summary PDF"
 - "Export All Receipts PDF"
 
 ---
 
 ### 5.4 History `/history`
+
 - List of past sessions by date
 - Click a session → expand and view its transactions (read-only)
 - Export PDF for any past session
 
 **Search bar:**
+
 - Search across all past transactions by **buyer name** or **amount**
 - Instant client-side filtering as the cashier types
 - Matching text highlighted in results
 - Shows which session (date) each result belongs to
 
 **Filter bar (below search):**
+
 - Filter by payment status: `All` | `Confirmed` | `Pending` | `Cancelled`
-- Filter by payment method: `All` | `Bank Transfer` | `Wallet` | `Cash` | *(any recorded method)*
+- Filter by payment method: `All` | `Bank Transfer` | `Wallet` | `Cash` | _(any recorded method)_
 - Filter by date range: date-from / date-to inputs
 - Active filters shown as dismissible chips/tags
 - "Clear all filters" button
 
 **Results view:**
+
 - When search or filters are active → flat list of matching transactions across all sessions, grouped by date
 - When nothing is active → default session-list view (collapsed cards per day)
-- Result count shown: *"12 transactions found"*
+- Result count shown: _"12 transactions found"_
 
 **API support:**
+
 - `GET /api/transactions?search=&status=&method=&from=&to=` — server-side filtered query via Prisma `where` clauses (handles large datasets efficiently)
 
 ---
@@ -225,6 +240,7 @@ This is the **primary work screen** the cashier uses all day.
 Two PDF document types generated with `@react-pdf/renderer`:
 
 ### Daily Summary PDF
+
 - Store header (cashier name, date)
 - Stats: total confirmed, total pending, total cancelled
 - Breakdown by payment method
@@ -232,6 +248,7 @@ Two PDF document types generated with `@react-pdf/renderer`:
 - Pending follow-up list with phone numbers
 
 ### Per-Transaction Receipt PDF
+
 - Transaction ID
 - Buyer name
 - Items purchased
@@ -256,9 +273,11 @@ Two PDF document types generated with `@react-pdf/renderer`:
 ## 8. UI Design System — Uber-Inspired
 
 ### Design Philosophy
-Uber's design language is **utilitarian luxury** — it doesn't try to be pretty, it tries to be *fast and trustworthy*. Clean whites, deep blacks, precise typography, cards with strong shadow hierarchy, and a single strong accent color. Everything is purposeful and dense without feeling crowded.
+
+Uber's design language is **utilitarian luxury** — it doesn't try to be pretty, it tries to be _fast and trustworthy_. Clean whites, deep blacks, precise typography, cards with strong shadow hierarchy, and a single strong accent color. Everything is purposeful and dense without feeling crowded.
 
 ### Color Palette
+
 ```
 Background:    #F6F6F6  (off-white surface)
 Card:          #FFFFFF  (pure white)
@@ -272,6 +291,7 @@ Border:        #E5E5E5  (subtle divider)
 ```
 
 ### Typography
+
 ```
 Display/Headings:  "Neue Haas Grotesk" or fallback "UberMove", sans-serif
 Body:              "Inter" (only practical exception — pairs well with the above)
@@ -280,6 +300,7 @@ Arabic fallback:   "Cairo" (Google Fonts — clean, modern Arabic)
 ```
 
 ### Component Style Rules
+
 - Cards: `rounded-2xl`, `shadow-sm`, white background, 1px border `#E5E5E5`
 - Buttons: fully black (`bg-black text-white`), `rounded-xl`, no gradients
 - Inputs: borderless bottom-line style OR full border `rounded-xl`, focus ring black
@@ -289,6 +310,7 @@ Arabic fallback:   "Cairo" (Google Fonts — clean, modern Arabic)
 - Topbar: white, date on left, user avatar + logout on right
 
 ### Layout
+
 - Sidebar navigation (desktop): 240px fixed width
 - Main content: fluid, max-width 1200px, centered
 - Mobile: bottom navigation bar (4 icons)
@@ -299,17 +321,17 @@ Arabic fallback:   "Cairo" (Google Fonts — clean, modern Arabic)
 
 ## 9. API Routes
 
-| Method | Route | Description |
-|---|---|---|
-| POST | `/api/auth/[...nextauth]` | Login / logout |
-| GET | `/api/sessions` | Get all sessions for current user |
-| POST | `/api/sessions` | Create new session for today |
-| GET | `/api/transactions?sessionId=` | Get transactions for a session |
-| GET | `/api/transactions?search=&status=&method=&from=&to=` | Search + filter transactions across sessions |
-| POST | `/api/transactions` | Add a new transaction |
-| PATCH | `/api/transactions/:id` | Update status or any field |
-| DELETE | `/api/transactions/:id` | Delete a transaction |
-| GET | `/api/export?sessionId=&type=summary|receipts` | Generate and return PDF |
+| Method | Route                                                 | Description                                  |
+| ------ | ----------------------------------------------------- | -------------------------------------------- | ----------------------- |
+| POST   | `/api/auth/[...nextauth]`                             | Login / logout                               |
+| GET    | `/api/sessions`                                       | Get all sessions for current user            |
+| POST   | `/api/sessions`                                       | Create new session for today                 |
+| GET    | `/api/transactions?sessionId=`                        | Get transactions for a session               |
+| GET    | `/api/transactions?search=&status=&method=&from=&to=` | Search + filter transactions across sessions |
+| POST   | `/api/transactions`                                   | Add a new transaction                        |
+| PATCH  | `/api/transactions/:id`                               | Update status or any field                   |
+| DELETE | `/api/transactions/:id`                               | Delete a transaction                         |
+| GET    | `/api/export?sessionId=&type=summary                  | receipts`                                    | Generate and return PDF |
 
 ---
 
@@ -317,16 +339,18 @@ Arabic fallback:   "Cairo" (Google Fonts — clean, modern Arabic)
 
 ```ts
 const TransactionSchema = z.object({
-  buyerName:     z.string().min(2),
-  items:         z.string().min(3),
+  buyerName: z.string().min(2),
+  items: z.string().min(3),
   paymentMethod: z.string().min(1),
-  amount:        z.number().positive(),
-  status:        z.enum(["CONFIRMED", "PENDING", "CANCELLED"]),
-  buyerPhone:    z.string().optional().refine(
-    (val, ctx) => ctx.parent.status !== "PENDING" || (!!val && val.length >= 7),
-    { message: "Phone is required for pending payments" }
-  ),
-});
+  amount: z.number().positive(),
+  status: z.enum(['CONFIRMED', 'PENDING', 'CANCELLED']),
+  buyerPhone: z
+    .string()
+    .optional()
+    .refine((val, ctx) => ctx.parent.status !== 'PENDING' || (!!val && val.length >= 7), {
+      message: 'Phone is required for pending payments',
+    }),
+})
 ```
 
 ---
@@ -334,37 +358,42 @@ const TransactionSchema = z.object({
 ## 11. Development Phases
 
 ### Phase 1 — Foundation
-- [ ] Init Next.js 14 project with TypeScript + Tailwind
+
+- [x] Init Next.js 14 project with TypeScript + Tailwind
 - [ ] Set up Prisma + PostgreSQL + run first migration
-- [ ] Implement NextAuth credentials login
-- [ ] Build layout (sidebar, topbar, responsive shell)
+- [x] Implement NextAuth credentials login
+- [x] Build layout (sidebar, topbar, responsive shell)
 
 ### Phase 2 — Core Features
-- [ ] Session creation logic (one per day per user)
-- [ ] Transaction form with validation
-- [ ] Transaction table with status toggle + delete
-- [ ] Today's dashboard fully functional
+
+- [x] Session creation logic (one per day per user)
+- [x] Transaction form with validation
+- [x] Transaction table with status toggle + delete
+- [x] Today's dashboard fully functional
 
 ### Phase 3 — Summary & Export
-- [ ] End-of-day summary page with stats
-- [ ] Pending follow-up list
-- [ ] `@react-pdf/renderer` setup
-- [ ] Daily summary PDF template
-- [ ] Per-receipt PDF template
-- [ ] Export API route
+
+- [x] End-of-day summary page with stats
+- [x] Pending follow-up list
+- [x] `@react-pdf/renderer` setup
+- [x] Daily summary PDF template
+- [x] Per-receipt PDF template
+- [x] Export API route
 
 ### Phase 4 — Bilingual, Search & Polish
-- [ ] i18n context + en/ar JSON files
-- [ ] RTL layout switching
-- [ ] Arabic PDF support
-- [ ] History page — session list + expand view
-- [ ] Search bar (buyer name + amount) with highlight
-- [ ] Filter bar (status + payment method + date range)
-- [ ] Server-side filtered Prisma query for history
-- [ ] Active filter chips + clear all
-- [ ] Mobile responsive pass
+
+- [x] i18n context + en/ar JSON files
+- [x] RTL layout switching
+- [x] Arabic PDF support
+- [x] History page — session list + expand view
+- [x] Search bar (buyer name + amount) with highlight
+- [x] Filter bar (status + payment method + date range)
+- [x] Server-side filtered Prisma query for history
+- [x] Active filter chips + clear all
+- [x] Mobile responsive pass
 
 ### Phase 5 — QA & Deployment
+
 - [ ] Error boundaries + loading states
 - [ ] Auth guards on all routes
 - [ ] Deploy on Vercel + managed PostgreSQL (Supabase or Neon)
@@ -397,4 +426,4 @@ const TransactionSchema = z.object({
 
 ---
 
-*Plan version 1.1 — updated with search & filter features.*
+_Plan version 1.1 — updated with search & filter features._

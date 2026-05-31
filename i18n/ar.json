@@ -5,5 +5,40 @@
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
     "button": "دخول"
+  },
+  "dashboard": {
+    "title": "جلسة اليوم",
+    "status": "الحالة: ",
+    "openPrompt": "افتح جلسة للبدء في تسجيل مبيعات اليوم.",
+    "openSessionBtn": "فتح الجلسة",
+    "openingBtn": "جاري الفتح...",
+    "addTransactionBtn": "إضافة معاملة",
+    "newTransaction": "معاملة جديدة",
+    "loadingSession": "جاري تحميل الجلسة...",
+    "errorOpen": "تعذر فتح جلسة جديدة.",
+    "errorLoad": "تعذر تحميل بيانات الجلسة.",
+    "errorAdd": "تعذر إضافة المعاملة.",
+    "statusOpen": "مفتوحة",
+    "statusClosed": "مغلقة"
+  },
+  "transactionForm": {
+    "buyerName": "اسم المشتري",
+    "buyerNamePlaceholder": "اسم المشتري",
+    "paymentMethod": "طريقة الدفع",
+    "paymentMethodPlaceholder": "حوالة بنكية / كاش",
+    "itemsPurchased": "العناصر المشتراة",
+    "itemsPurchasedPlaceholder": "صف العناصر المباعة",
+    "amount": "المبلغ",
+    "status": "الحالة",
+    "phoneNumber": "رقم الهاتف",
+    "addBtn": "إضافة معاملة",
+    "savingBtn": "جاري الحفظ...",
+    "statusConfirmed": "مؤكد",
+    "statusPending": "قيد الانتظار",
+    "statusCancelled": "ملغى"
+  },
+  "layout": {
+    "title": "سجل الكاشير",
+    "subtitle": "لوحة التحكُّم اليومية"
   }
 }

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
-export default function SidebarNav() {
+export default function BottomNav() {
   const pathname = usePathname()
   const { data: session } = useSession()
 
@@ -16,11 +16,11 @@ export default function SidebarNav() {
   ]
 
   if (session?.user?.role === 'ADMIN') {
-    navItems.push({ href: '/cashiers', label: 'Manage Cashiers' })
+    navItems.push({ href: '/cashiers', label: 'Cashiers' })
   }
 
   return (
-    <nav className="mt-10 flex flex-col gap-2 text-sm text-text-secondary">
+    <nav className="fixed bottom-0 z-50 flex w-full justify-around border-t border-border bg-white pb-safe lg:hidden">
       {navItems.map((item) => {
         const isActive = pathname === item.href
         return (
@@ -28,10 +28,12 @@ export default function SidebarNav() {
             key={item.href}
             href={item.href}
             className={clsx(
-              'rounded-xl px-3 py-2 transition',
-              isActive ? 'bg-black text-white' : 'text-text-secondary hover:bg-black/5',
+              'flex flex-1 flex-col items-center justify-center gap-1 py-3 text-xs transition',
+              isActive ? 'font-bold text-black' : 'text-text-secondary',
             )}
           >
+            {/* You can inject exact SVG icons here for Mobile items later */}
+            <div className={clsx('h-1.5 w-1.5 rounded-full', isActive ? 'bg-black' : 'bg-transparent')} />
             {item.label}
           </Link>
         )

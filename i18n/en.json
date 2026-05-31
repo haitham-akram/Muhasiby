@@ -5,5 +5,40 @@
     "email": "Email",
     "password": "Password",
     "button": "Sign in"
+  },
+  "dashboard": {
+    "title": "Today's Session",
+    "status": "Status: ",
+    "openPrompt": "Open a session to start recording today's sales.",
+    "openSessionBtn": "Open Session",
+    "openingBtn": "Opening...",
+    "addTransactionBtn": "Add Transaction",
+    "newTransaction": "New Transaction",
+    "loadingSession": "Loading session...",
+    "errorOpen": "Unable to open a new session.",
+    "errorLoad": "Unable to load session data.",
+    "errorAdd": "Unable to add transaction.",
+    "statusOpen": "Open",
+    "statusClosed": "Closed"
+  },
+  "transactionForm": {
+    "buyerName": "Buyer Name",
+    "buyerNamePlaceholder": "Buyer name",
+    "paymentMethod": "Payment Method",
+    "paymentMethodPlaceholder": "Bank Transfer / Cash",
+    "itemsPurchased": "Items Purchased",
+    "itemsPurchasedPlaceholder": "Describe items sold",
+    "amount": "Amount",
+    "status": "Status",
+    "phoneNumber": "Phone Number",
+    "addBtn": "Add Transaction",
+    "savingBtn": "Saving...",
+    "statusConfirmed": "Confirmed",
+    "statusPending": "Pending",
+    "statusCancelled": "Cancelled"
+  },
+  "layout": {
+    "title": "Cashier Ledger",
+    "subtitle": "Daily dashboard"
   }
 }

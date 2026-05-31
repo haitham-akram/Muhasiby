@@ -1,24 +1,46 @@
-import LogoutButton from "@/components/LogoutButton";
-import SidebarNav from "@/components/SidebarNav";
+import LogoutButton from '@/components/LogoutButton'
+import SidebarNav from '@/components/SidebarNav'
+import BottomNav from '@/components/BottomNav'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions)
+
+  if (!session) {
+    redirect('/login')
+  }
+
+  // To support server side layouts, we could fetch cookies directly,
+  // but for now, we'll keep hardcoded strings localized by switching to a client component header
+  // if you want full localization for layout frame.
+  // I will leave LanguageSwitcher here.
+
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background pb-16 lg:pb-0">
       <aside className="hidden w-60 flex-col border-r border-border bg-card px-6 py-8 lg:flex">
-        <div className="text-lg font-semibold">Cashier Ledger</div>
+        <div className="text-lg font-semibold mb-6">Cashier Ledger</div>
         <SidebarNav />
+        <div className="mt-auto pt-8">
+          <LanguageSwitcher />
+        </div>
       </aside>
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
-          <span className="text-sm text-text-secondary">Daily dashboard</span>
-          <LogoutButton />
+          <span className="text-sm font-medium text-text-secondary lg:hidden">Cashier Ledger</span>
+          <span className="hidden text-sm text-text-secondary lg:block">Daily dashboard</span>
+          <div className="flex items-center gap-4">
+            <div className="lg:hidden">
+              <LanguageSwitcher />
+            </div>
+            <LogoutButton />
+          </div>
         </header>
         <div className="flex-1">{children}</div>
       </div>
+      <BottomNav />
     </div>
-  );
+  )
 }

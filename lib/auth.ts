@@ -38,6 +38,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role, // Attach database role
         };
       },
     }),
@@ -49,12 +50,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id;
+        session.user.role = token.role as "ADMIN" | "CASHIER";
       }
       return session;
     },

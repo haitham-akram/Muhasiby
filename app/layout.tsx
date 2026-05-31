@@ -1,22 +1,27 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import Providers from "./providers";
+import { cookies } from 'next/headers'
+import type { Metadata } from 'next'
+import './globals.css'
+import Providers from './providers'
 
 export const metadata: Metadata = {
-  title: "Cashier Ledger",
-  description: "Daily sales tracking and reconciliation for cashiers.",
-};
+  title: 'Cashier Ledger',
+  description: 'Daily sales tracking and reconciliation for cashiers.',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
+  const cookieStore = cookies()
+  const locale = cookieStore.get('NEXT_LOCALE')?.value || 'ar'
+  const dir = locale === 'ar' ? 'rtl' : 'ltr'
+
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang={locale} dir={dir} className="h-full antialiased">
       <body className="min-h-full flex flex-col font-sans">
-        <Providers>{children}</Providers>
+        <Providers locale={locale}>{children}</Providers>
       </body>
     </html>
-  );
+  )
 }
