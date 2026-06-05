@@ -47,6 +47,7 @@
     "history": "History",
     "manageCashiers": "Manage Cashiers",
     "cashiers": "Cashiers",
+    "providers": "Providers",
     "logout": "Logout"
   },
   "statusBadge": {
@@ -77,7 +78,15 @@
     "searchPlaceholder": "Search transactions...",
     "noTransactions": "No transactions found.",
     "subtitle": "Search past sessions and filter transactions.",
-    "transactionsFound": "transactions found"
+    "transactionsFound": "transactions found",
+    "session": "Session",
+    "viewTransactions": "View transactions",
+    "hideTransactions": "Hide transactions",
+    "noMatchingTransactions": "No matching transactions.",
+    "noSessions": "No sessions found.",
+    "noTransactionsYet": "No transactions yet.",
+    "exportPdf": "Export PDF",
+    "exporting": "Exporting..."
   },
   "summary": {
     "title": "Summary",
@@ -110,7 +119,10 @@
     "items": "Items",
     "amount": "Amount",
     "status": "Status",
-    "delete": "Delete"
+    "phone": "Phone",
+    "actions": "Actions",
+    "delete": "Delete",
+    "noTransactionsYet": "No transactions yet."
   },
   "summaryClient": {
     "title": "Daily Summary",
@@ -119,9 +131,55 @@
     "breakdown": "Breakdown by payment method",
     "noPayments": "No payments yet.",
     "pendingFollowUp": "Pending follow-up",
+    "pendingStatus": "Pending",
     "markConfirmed": "Mark confirmed",
     "noPending": "No pending transactions.",
     "recentTransactions": "Recent transactions",
-    "noTransactions": "No transactions yet."
+    "noTransactions": "No transactions yet.",
+    "exportSummaryPdf": "Export Daily Summary PDF",
+    "exportReceiptsPdf": "Export All Receipts PDF",
+    "exporting": "Exporting...",
+    "exportAction": "Export"
+  },
+  "providers": {
+    "title": "Providers",
+    "subtitle": "Manage suppliers, restock bills, and outstanding debt.",
+    "addBtn": "Add Provider",
+    "name": "Provider Name",
+    "phone": "Phone Number",
+    "totalDebt": "Total Debt",
+    "billsCount": "Bills",
+    "noProviders": "No providers found.",
+    "creating": "Creating...",
+    "create": "Create Provider",
+    "cancel": "Cancel",
+    "bills": "Bills",
+    "payments": "Payments",
+    "addBill": "Add Bill",
+    "addPayment": "Add Payment",
+    "exportAllExcel": "Export All (Excel)",
+    "exportAllPdf": "Export All (PDF)",
+    "exportExcel": "Export Excel",
+    "exportPdf": "Export PDF",
+    "date": "Date",
+    "totalAmount": "Total Amount",
+    "status": "Status",
+    "noBills": "No bills found.",
+    "amount": "Amount",
+    "noPayments": "No payments found.",
+    "items": "Items",
+    "description": "Item Description",
+    "quantity": "Qty",
+    "unitPrice": "Unit Price",
+    "total": "Total",
+    "addItem": "Add Item",
+    "saveBill": "Save Bill",
+    "saving": "Saving...",
+    "paymentAmount": "Payment Amount",
+    "savePayment": "Save Payment",
+    "unpaid": "Unpaid",
+    "partial": "Partial",
+    "paid": "Paid",
+    "viewDetails": "View Details"
   }
 }

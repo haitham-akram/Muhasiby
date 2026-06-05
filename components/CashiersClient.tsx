@@ -64,7 +64,7 @@ export default function CashiersClient() {
       setPassword('')
       await fetchCashiers() // Refresh the list
     } catch (err: unknown) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : 'Failed to create cashier')
     } finally {
       setIsSubmitting(false)
     }
@@ -152,7 +152,7 @@ export default function CashiersClient() {
                     onClick={() => handleDelete(cashier.id)}
                     className="rounded-lg border border-status-cancelled px-3 py-1.5 text-xs font-semibold text-status-cancelled transition hover:bg-status-cancelled hover:text-white"
                   >
-                    Delete
+                    {t('cashiers.delete')}
                   </button>
                 </div>
               </div>

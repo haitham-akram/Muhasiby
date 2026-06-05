@@ -1,7 +1,17 @@
-import { Font } from '@react-pdf/renderer';
+import path from 'path'
+import { Font } from '@react-pdf/renderer'
 
-// Register Arabic font if available locally or via URL
+// Use locally bundled font files to avoid network failures at render time
 Font.register({
   family: 'Cairo',
-  src: 'https://fonts.gstatic.com/s/cairo/v20/SLXVc1nY6HkvangtZmpcOQ.ttf' // Lightweight regular weight
-});
+  fonts: [
+    {
+      src: path.join(process.cwd(), 'public/fonts/Cairo-Regular.ttf'),
+      fontWeight: 'normal',
+    },
+    {
+      src: path.join(process.cwd(), 'public/fonts/Cairo-Bold.ttf'),
+      fontWeight: 'bold',
+    },
+  ],
+})

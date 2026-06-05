@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get("sessionId");
     const type = searchParams.get("type"); // "summary" | "receipt"
     const transactionId = searchParams.get("transactionId"); // required for receipt
+    const lang = (searchParams.get("lang") as "en" | "ar") || "en";
 
     if (!sessionId) {
       return NextResponse.json({ message: "sessionId is required" }, { status: 400 });
@@ -40,7 +41,8 @@ export async function GET(request: NextRequest) {
         transactions: dbSession.transactions,
         // @ts-ignore
         session: dbSession,
-        cashierName: session.user.name || "Cashier"
+        cashierName: session.user.name || "Cashier",
+        lang
       }));
 
       return new NextResponse(stream as any, {

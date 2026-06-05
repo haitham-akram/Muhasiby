@@ -43,7 +43,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
     >
       <div className="grid gap-4 md:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm">
-          Buyer Name
+          {t('transactionForm.buyerName')}
           <input
             className="rounded-xl border border-border px-3 py-2"
             {...register('buyerName')}
@@ -52,11 +52,11 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
           {errors.buyerName ? <span className="text-xs text-status-cancelled">{errors.buyerName.message}</span> : null}
         </label>
         <label className="flex flex-col gap-2 text-sm">
-          Payment Method
+          {t('transactionForm.paymentMethod')}
           <input
             className="rounded-xl border border-border px-3 py-2"
             {...register('paymentMethod')}
-            placeholder="Bank Transfer"
+            placeholder={t('transactionForm.paymentMethodPlaceholder')}
           />
           {errors.paymentMethod ? (
             <span className="text-xs text-status-cancelled">{errors.paymentMethod.message}</span>
@@ -64,7 +64,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
         </label>
       </div>
       <label className="flex flex-col gap-2 text-sm">
-        Items Purchased
+        {t('transactionForm.itemsPurchased')}
         <textarea
           className="min-h-[90px] rounded-xl border border-border px-3 py-2"
           {...register('items')}
@@ -74,7 +74,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
       </label>
       <div className="grid gap-4 md:grid-cols-3">
         <label className="flex flex-col gap-2 text-sm">
-          Amount
+          {t('transactionForm.amount')}
           <input
             type="number"
             step="0.01"
@@ -85,7 +85,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
           {errors.amount ? <span className="text-xs text-status-cancelled">{errors.amount.message}</span> : null}
         </label>
         <label className="flex flex-col gap-2 text-sm">
-          Status
+          {t('transactionForm.status')}
           <select className="rounded-xl border border-border px-3 py-2" {...register('status')}>
             <option value="CONFIRMED">{t("transactionForm.statusConfirmed")}</option>
             <option value="PENDING">{t("transactionForm.statusPending")}</option>
@@ -94,7 +94,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
         </label>
         {status === 'PENDING' ? (
           <label className="flex flex-col gap-2 text-sm">
-            Phone Number
+            {t('transactionForm.phoneNumber')}
             <input
               className="rounded-xl border border-border px-3 py-2"
               {...register('buyerPhone')}

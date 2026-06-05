@@ -47,6 +47,7 @@
     "history": "السجل",
     "manageCashiers": "إدارة الكاشير",
     "cashiers": "الكاشير",
+    "providers": "الموردين",
     "logout": "تسجيل خروج"
   },
   "statusBadge": {
@@ -77,7 +78,15 @@
     "searchPlaceholder": "البحث في المعاملات...",
     "noTransactions": "لم يتم العثور على معاملات.",
     "subtitle": "ابحث في الجلسات السابقة وقم بتصفية المعاملات.",
-    "transactionsFound": "معاملة وجدت"
+    "transactionsFound": "معاملة وجدت",
+    "session": "جلسة",
+    "viewTransactions": "عرض المعاملات",
+    "hideTransactions": "إخفاء المعاملات",
+    "noMatchingTransactions": "لا توجد معاملات مطابقة.",
+    "noSessions": "لم يتم العثور على جلسات.",
+    "noTransactionsYet": "لا توجد معاملات بعد.",
+    "exportPdf": "تصدير PDF",
+    "exporting": "جاري التصدير..."
   },
   "summary": {
     "title": "الملخص",
@@ -110,7 +119,10 @@
     "items": "العناصر",
     "amount": "المبلغ",
     "status": "الحالة",
-    "delete": "حذف"
+    "phone": "الهاتف",
+    "actions": "الإجراءات",
+    "delete": "حذف",
+    "noTransactionsYet": "لا توجد معاملات بعد."
   },
   "summaryClient": {
     "title": "الملخص اليومي",
@@ -119,9 +131,55 @@
     "breakdown": "تفصيل حسب طريقة الدفع",
     "noPayments": "لا توجد مدفوعات بعد.",
     "pendingFollowUp": "متابعات قيد الانتظار",
+    "pendingStatus": "قيد الانتظار",
     "markConfirmed": "تحديد كمؤكد",
     "noPending": "لا توجد معاملات معلقة.",
     "recentTransactions": "المعاملات الأخيرة",
-    "noTransactions": "لا توجد معاملات حتى الآن."
+    "noTransactions": "لا توجد معاملات حتى الآن.",
+    "exportSummaryPdf": "تصدير ملخص اليوم PDF",
+    "exportReceiptsPdf": "تصدير جميع الإيصالات PDF",
+    "exporting": "جاري التصدير...",
+    "exportAction": "تصدير"
+  },
+  "providers": {
+    "title": "الموردين",
+    "subtitle": "إدارة الموردين وفواتير البضائع والديون المستحقة.",
+    "addBtn": "إضافة مورد",
+    "name": "اسم المورد",
+    "phone": "رقم الهاتف",
+    "totalDebt": "إجمالي الدين",
+    "billsCount": "الفواتير",
+    "noProviders": "لم يتم العثور على موردين.",
+    "creating": "جاري الإنشاء...",
+    "create": "إنشاء مورد",
+    "cancel": "إلغاء",
+    "bills": "الفواتير",
+    "payments": "الدفعات",
+    "addBill": "إضافة فاتورة",
+    "addPayment": "إضافة دفعة",
+    "exportAllExcel": "تصدير الكل (Excel)",
+    "exportAllPdf": "تصدير الكل (PDF)",
+    "exportExcel": "تصدير Excel",
+    "exportPdf": "تصدير PDF",
+    "date": "التاريخ",
+    "totalAmount": "الإجمالي",
+    "status": "الحالة",
+    "noBills": "لا توجد فواتير.",
+    "amount": "المبلغ",
+    "noPayments": "لا توجد دفعات.",
+    "items": "العناصر",
+    "description": "وصف العنصر",
+    "quantity": "الكمية",
+    "unitPrice": "سعر الوحدة",
+    "total": "المجموع",
+    "addItem": "إضافة عنصر",
+    "saveBill": "حفظ الفاتورة",
+    "saving": "جاري الحفظ...",
+    "paymentAmount": "مبلغ الدفعة",
+    "savePayment": "حفظ الدفعة",
+    "unpaid": "غير مدفوع",
+    "partial": "مدفوع جزئياً",
+    "paid": "مدفوع بالكامل",
+    "viewDetails": "عرض التفاصيل"
   }
 }

@@ -50,3 +50,52 @@ enum Status {
   PENDING
   CANCELLED
 }
+
+model Provider {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bills     Bill[]
+  payments  ProviderPayment[]
+}
+
+model Bill {
+  id           String      @id @default(cuid())
+  providerId   String
+  provider     Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  totalAmount  Float
+  status       BillStatus  @default(UNPAID)
+  date         DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  items        BillItem[]
+}
+
+model BillItem {
+  id          String   @id @default(cuid())
+  billId      String
+  bill        Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int
+  unitPrice   Float
+  total       Float
+}
+
+model ProviderPayment {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  amount      Float
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+enum BillStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
