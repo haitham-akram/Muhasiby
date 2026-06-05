@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/app/providers";
+
 type SummaryStatsProps = {
   totalTransactions: number;
   totalConfirmed: number;
@@ -13,11 +15,12 @@ export default function SummaryStats({
   totalPending,
   totalCancelled,
 }: SummaryStatsProps) {
+  const { t } = useLanguage();
   const cards = [
-    { label: "Total Transactions", value: totalTransactions.toString() },
-    { label: "Total Confirmed", value: totalConfirmed.toFixed(2) },
-    { label: "Total Pending", value: totalPending.toFixed(2) },
-    { label: "Total Cancelled", value: totalCancelled.toFixed(2) },
+    { label: t("summaryStats.totalTransactions"), value: totalTransactions.toString() },
+    { label: t("summaryStats.totalConfirmed"), value: totalConfirmed.toFixed(2) },
+    { label: t("summaryStats.totalPending"), value: totalPending.toFixed(2) },
+    { label: t("summaryStats.totalCancelled"), value: totalCancelled.toFixed(2) },
   ];
 
   return (

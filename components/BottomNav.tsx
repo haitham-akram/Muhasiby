@@ -4,19 +4,21 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { useLanguage } from '@/app/providers'
 
 export default function BottomNav() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const { t } = useLanguage()
 
   const navItems = [
-    { href: '/', label: 'Today' },
-    { href: '/summary', label: 'Summary' },
-    { href: '/history', label: 'History' },
+    { href: '/', label: t('nav.today') },
+    { href: '/summary', label: t('nav.summary') },
+    { href: '/history', label: t('nav.history') },
   ]
 
   if (session?.user?.role === 'ADMIN') {
-    navItems.push({ href: '/cashiers', label: 'Cashiers' })
+    navItems.push({ href: '/cashiers', label: t('nav.cashiers') })
   }
 
   return (

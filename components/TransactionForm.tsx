@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { useLanguage } from '@/app/providers'
 
 import { TransactionSchema } from '@/lib/validations'
 
@@ -14,6 +15,7 @@ type TransactionFormProps = {
 }
 
 export default function TransactionForm({ onSubmit, isSubmitting = false }: TransactionFormProps) {
+  const { t } = useLanguage()
   const {
     register,
     handleSubmit,
@@ -45,7 +47,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
           <input
             className="rounded-xl border border-border px-3 py-2"
             {...register('buyerName')}
-            placeholder="Buyer name"
+            placeholder={t("transactionForm.buyerNamePlaceholder")}
           />
           {errors.buyerName ? <span className="text-xs text-status-cancelled">{errors.buyerName.message}</span> : null}
         </label>
@@ -66,7 +68,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
         <textarea
           className="min-h-[90px] rounded-xl border border-border px-3 py-2"
           {...register('items')}
-          placeholder="Describe items sold"
+          placeholder={t("transactionForm.itemsPurchasedPlaceholder")}
         />
         {errors.items ? <span className="text-xs text-status-cancelled">{errors.items.message}</span> : null}
       </label>
@@ -85,9 +87,9 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
         <label className="flex flex-col gap-2 text-sm">
           Status
           <select className="rounded-xl border border-border px-3 py-2" {...register('status')}>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="PENDING">Pending</option>
-            <option value="CANCELLED">Cancelled</option>
+            <option value="CONFIRMED">{t("transactionForm.statusConfirmed")}</option>
+            <option value="PENDING">{t("transactionForm.statusPending")}</option>
+            <option value="CANCELLED">{t("transactionForm.statusCancelled")}</option>
           </select>
         </label>
         {status === 'PENDING' ? (
@@ -109,7 +111,7 @@ export default function TransactionForm({ onSubmit, isSubmitting = false }: Tran
         className="w-full rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Saving...' : 'Add Transaction'}
+        {isSubmitting ? t("transactionForm.savingBtn") : t("transactionForm.addBtn")}
       </button>
     </form>
   )

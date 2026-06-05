@@ -40,5 +40,88 @@
   "layout": {
     "title": "سجل الكاشير",
     "subtitle": "لوحة التحكُّم اليومية"
+  },
+  "nav": {
+    "today": "اليوم",
+    "summary": "الملخص",
+    "history": "السجل",
+    "manageCashiers": "إدارة الكاشير",
+    "cashiers": "الكاشير",
+    "logout": "تسجيل خروج"
+  },
+  "statusBadge": {
+    "CONFIRMED": "مؤكد",
+    "PENDING": "قيد الانتظار",
+    "CANCELLED": "ملغى"
+  },
+  "filterBar": {
+    "status": "الحالة",
+    "all": "الكل",
+    "confirmed": "مؤكد",
+    "pending": "قيد الانتظار",
+    "cancelled": "ملغى",
+    "paymentMethod": "طريقة الدفع",
+    "from": "من",
+    "to": "إلى",
+    "clearFilters": "مسح الفلاتر",
+    "search": "البحث"
+  },
+  "summaryStats": {
+    "totalTransactions": "إجمالي المعاملات",
+    "totalConfirmed": "الإجمالي المؤكد",
+    "totalPending": "الإجمالي المعلق",
+    "totalCancelled": "الإجمالي الملغى"
+  },
+  "history": {
+    "title": "السجل",
+    "searchPlaceholder": "البحث في المعاملات...",
+    "noTransactions": "لم يتم العثور على معاملات.",
+    "subtitle": "ابحث في الجلسات السابقة وقم بتصفية المعاملات.",
+    "transactionsFound": "معاملة وجدت"
+  },
+  "summary": {
+    "title": "الملخص",
+    "noTransactions": "لم يتم العثور على جلسات لهذه الفترة.",
+    "subtitle": "عرض الملخصات اليومية وتنزيل التقارير.",
+    "generatePdf": "إنشاء PDF"
+  },
+  "cashiers": {
+    "title": "إدارة الكاشير",
+    "addBtn": "إضافة كاشير",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "cancel": "إلغاء",
+    "loading": "جاري تحميل الكاشيرات...",
+    "noCashiers": "لم يتم العثور على كاشيرات.",
+    "subtitle": "إضافة، تعديل، أو إزالة الكاشيرات من النظام.",
+    "addNew": "إضافة كاشير جديد",
+    "creating": "جاري الإنشاء...",
+    "create": "إنشاء كاشير",
+    "existing": "الكاشيرات الحاليين",
+    "added": "تمت الإضافة: ",
+    "delete": "حذف",
+    "confirmDelete": "هل أنت متأكد من حذف الكاشير؟"
+  },
+  "transactionTable": {
+    "buyerName": "اسم المشتري",
+    "time": "الوقت",
+    "paymentMethod": "طريقة الدفع",
+    "items": "العناصر",
+    "amount": "المبلغ",
+    "status": "الحالة",
+    "delete": "حذف"
+  },
+  "summaryClient": {
+    "title": "الملخص اليومي",
+    "reviewTotals": "مراجعة إجماليات اليوم والمتابعات.",
+    "noSession": "لا توجد جلسة بعد.",
+    "breakdown": "تفصيل حسب طريقة الدفع",
+    "noPayments": "لا توجد مدفوعات بعد.",
+    "pendingFollowUp": "متابعات قيد الانتظار",
+    "markConfirmed": "تحديد كمؤكد",
+    "noPending": "لا توجد معاملات معلقة.",
+    "recentTransactions": "المعاملات الأخيرة",
+    "noTransactions": "لا توجد معاملات حتى الآن."
   }
 }

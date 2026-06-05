@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 
 import SummaryStats from "@/components/SummaryStats";
+import { useLanguage } from "@/app/providers";
 import type { Session, Transaction } from "@/lib/types";
 
 export default function SummaryClient() {
+  const { t } = useLanguage();
   const [session, setSession] = useState<Session | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -90,9 +92,9 @@ export default function SummaryClient() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
       <div>
-        <h1 className="text-3xl font-semibold">Daily Summary</h1>
+        <h1 className="text-3xl font-semibold">{t("summaryClient.title")}</h1>
         <p className="text-sm text-text-secondary">
-          {session ? "Review today's totals and follow-ups." : "No session yet."}
+          {session ? t("summaryClient.reviewTotals") : t("summaryClient.noSession")}
         </p>
       </div>
 
@@ -105,7 +107,7 @@ export default function SummaryClient() {
       <SummaryStats {...stats} />
 
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Breakdown by payment method</h2>
+        <h2 className="text-lg font-semibold">{t("summaryClient.breakdown")}</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           {breakdown.length ? (
             breakdown.map(([method, amount]) => (
@@ -118,21 +120,21 @@ export default function SummaryClient() {
               </div>
             ))
           ) : (
-            <p className="text-sm text-text-secondary">No payments yet.</p>
+            <p className="text-sm text-text-secondary">{t("summaryClient.noPayments")}</p>
           )}
         </div>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Pending follow-up</h2>
+        <h2 className="text-lg font-semibold">{t("summaryClient.pendingFollowUp")}</h2>
         {pendingTransactions.length ? (
           <div className="mt-4 overflow-hidden rounded-xl border border-border">
             <table className="w-full text-left text-sm">
               <thead className="bg-background text-xs uppercase text-text-secondary">
                 <tr>
-                  <th className="px-4 py-3">Buyer</th>
-                  <th className="px-4 py-3">Phone</th>
-                  <th className="px-4 py-3">Amount</th>
+                  <th className="px-4 py-3">{t("transactionTable.buyerName")}</th>
+                  <th className="px-4 py-3">{t("transactionForm.phoneNumber")}</th>
+                  <th className="px-4 py-3">{t("transactionTable.amount")}</th>
                   <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
@@ -159,22 +161,22 @@ export default function SummaryClient() {
           </div>
         ) : (
           <p className="mt-3 text-sm text-text-secondary">
-            No pending transactions.
+            {t("summaryClient.noPending")}
           </p>
         )}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Recent transactions</h2>
+        <h2 className="text-lg font-semibold">{t("summaryClient.recentTransactions")}</h2>
         {transactions.length ? (
           <div className="mt-4 overflow-hidden rounded-xl border border-border">
             <table className="w-full text-left text-sm">
               <thead className="bg-background text-xs uppercase text-text-secondary">
                 <tr>
-                  <th className="px-4 py-3">Buyer</th>
-                  <th className="px-4 py-3">Method</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">{t("transactionTable.buyerName")}</th>
+                  <th className="px-4 py-3">{t("transactionTable.paymentMethod")}</th>
+                  <th className="px-4 py-3">{t("transactionTable.amount")}</th>
+                  <th className="px-4 py-3">{t("transactionTable.status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -193,7 +195,7 @@ export default function SummaryClient() {
           </div>
         ) : (
           <p className="mt-3 text-sm text-text-secondary">
-            No transactions yet.
+            {t("summaryClient.noTransactions")}
           </p>
         )}
       </div>

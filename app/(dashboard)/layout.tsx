@@ -5,6 +5,8 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { getTranslation, type Locale } from '@/lib/i18n'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
@@ -13,15 +15,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login')
   }
 
-  // To support server side layouts, we could fetch cookies directly,
-  // but for now, we'll keep hardcoded strings localized by switching to a client component header
-  // if you want full localization for layout frame.
-  // I will leave LanguageSwitcher here.
+  const cookieStore = cookies()
+  const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'ar') as Locale
+  const t = (key: string) => getTranslation(locale, key)
 
   return (
     <div className="flex min-h-screen bg-background pb-16 lg:pb-0">
       <aside className="hidden w-60 flex-col border-r border-border bg-card px-6 py-8 lg:flex">
-        <div className="text-lg font-semibold mb-6">Cashier Ledger</div>
+        <div className="text-lg font-semibold mb-6">{t('layout.title')}</div>
         <SidebarNav />
         <div className="mt-auto pt-8">
           <LanguageSwitcher />
@@ -29,8 +30,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-4">
-          <span className="text-sm font-medium text-text-secondary lg:hidden">Cashier Ledger</span>
-          <span className="hidden text-sm text-text-secondary lg:block">Daily dashboard</span>
+          <span className="text-sm font-medium text-text-secondary lg:hidden">{t('layout.title')}</span>
+          <span className="hidden text-sm text-text-secondary lg:block">{t('layout.subtitle')}</span>
           <div className="flex items-center gap-4">
             <div className="lg:hidden">
               <LanguageSwitcher />

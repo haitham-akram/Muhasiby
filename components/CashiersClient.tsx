@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
+import { useLanguage } from '@/app/providers'
 
 type Cashier = {
   id: string
@@ -11,6 +12,7 @@ type Cashier = {
 }
 
 export default function CashiersClient() {
+  const { t } = useLanguage();
   const [cashiers, setCashiers] = useState<Cashier[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -69,7 +71,7 @@ export default function CashiersClient() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this cashier?')) return
+    if (!confirm(t("cashiers.confirmDelete"))) return
     try {
       const res = await fetch(`/api/cashiers/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete cashier')
@@ -83,11 +85,11 @@ export default function CashiersClient() {
     <div className="flex flex-col gap-8 md:flex-row">
       {/* Create Form */}
       <div className="flex-1 rounded-2xl border border-border bg-card p-6 shadow-sm h-fit">
-        <h2 className="mb-4 text-xl font-semibold">Add New Cashier</h2>
+        <h2 className="mb-4 text-xl font-semibold">{t("cashiers.addNew")}</h2>
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
           {error && <div className="text-sm text-status-cancelled">{error}</div>}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Name</label>
+            <label className="text-sm font-medium">{t("cashiers.name")}</label>
             <input
               type="text"
               value={name}
@@ -97,7 +99,7 @@ export default function CashiersClient() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Email</label>
+            <label className="text-sm font-medium">{t("cashiers.email")}</label>
             <input
               type="email"
               value={email}
@@ -107,7 +109,7 @@ export default function CashiersClient() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Password</label>
+            <label className="text-sm font-medium">{t("cashiers.password")}</label>
             <input
               type="password"
               value={password}
@@ -122,18 +124,18 @@ export default function CashiersClient() {
             disabled={isSubmitting}
             className="mt-2 rounded-xl bg-black px-4 py-2 text-center text-sm font-medium text-white transition disabled:opacity-60"
           >
-            {isSubmitting ? 'Creating...' : 'Create Cashier'}
+            {isSubmitting ? t("cashiers.creating") : t("cashiers.create")}
           </button>
         </form>
       </div>
 
       {/* Cashiers List */}
       <div className="flex-[2] rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-        <h2 className="border-b border-border p-6 text-xl font-semibold">Existing Cashiers</h2>
+        <h2 className="border-b border-border p-6 text-xl font-semibold">{t("cashiers.existing")}</h2>
         {isLoading ? (
-          <div className="p-6 text-sm text-text-secondary">Loading cashiers...</div>
+          <div className="p-6 text-sm text-text-secondary">{t("cashiers.loading")}</div>
         ) : cashiers.length === 0 ? (
-          <div className="p-6 text-sm text-text-secondary">No cashiers found.</div>
+          <div className="p-6 text-sm text-text-secondary">{t("cashiers.noCashiers")}</div>
         ) : (
           <div className="divide-y divide-border">
             {cashiers.map((cashier) => (
@@ -142,7 +144,7 @@ export default function CashiersClient() {
                   <div className="font-medium text-black">{cashier.name}</div>
                   <div className="text-sm text-text-secondary">{cashier.email}</div>
                   <div className="text-xs text-text-secondary mt-1">
-                    Added: {format(new Date(cashier.createdAt), 'dd MMM yyyy')}
+                    {t("cashiers.added")} {format(new Date(cashier.createdAt), 'dd MMM yyyy')}
                   </div>
                 </div>
                 <div className="flex gap-2">

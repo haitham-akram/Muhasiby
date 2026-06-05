@@ -2,6 +2,7 @@
 
 import StatusBadge from "@/components/StatusBadge";
 import type { Transaction, TransactionStatus } from "@/lib/types";
+import { useLanguage } from "@/app/providers";
 
 type TransactionTableProps = {
   transactions: Transaction[];
@@ -21,10 +22,12 @@ export default function TransactionTable({
   onToggleStatus,
   onDelete,
 }: TransactionTableProps) {
+  const { t } = useLanguage();
+
   if (!transactions.length) {
     return (
       <div className="rounded-2xl border border-border bg-card p-6 text-sm text-text-secondary">
-        No transactions yet.
+        {t("history.noTransactions")}
       </div>
     );
   }
@@ -35,11 +38,11 @@ export default function TransactionTable({
         <thead className="bg-background text-xs uppercase text-text-secondary">
           <tr>
             <th className="px-4 py-3">#</th>
-            <th className="px-4 py-3">Buyer</th>
-            <th className="px-4 py-3">Items</th>
-            <th className="px-4 py-3">Method</th>
-            <th className="px-4 py-3">Amount</th>
-            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3">{t("transactionTable.buyerName")}</th>
+            <th className="px-4 py-3">{t("transactionTable.items")}</th>
+            <th className="px-4 py-3">{t("transactionTable.paymentMethod")}</th>
+            <th className="px-4 py-3">{t("transactionTable.amount")}</th>
+            <th className="px-4 py-3">{t("transactionTable.status")}</th>
             <th className="px-4 py-3">Phone</th>
             <th className="px-4 py-3">Actions</th>
           </tr>
@@ -77,7 +80,7 @@ export default function TransactionTable({
                   className="text-xs font-medium text-status-cancelled"
                   onClick={() => onDelete(transaction)}
                 >
-                  Delete
+                  {t("transactionTable.delete")}
                 </button>
               </td>
             </tr>

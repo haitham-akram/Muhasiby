@@ -1,6 +1,7 @@
 "use client";
 
 import clsx from "clsx";
+import { useLanguage } from "@/app/providers";
 
 import type { TransactionStatus } from "@/lib/types";
 
@@ -10,18 +11,13 @@ const statusStyles: Record<TransactionStatus, string> = {
   CANCELLED: "bg-status-cancelled",
 };
 
-const statusLabels: Record<TransactionStatus, string> = {
-  CONFIRMED: "Confirmed",
-  PENDING: "Pending",
-  CANCELLED: "Cancelled",
-};
-
 type StatusBadgeProps = {
   status: TransactionStatus;
   onClick?: () => void;
 };
 
 export default function StatusBadge({ status, onClick }: StatusBadgeProps) {
+  const { t } = useLanguage();
   return (
     <button
       type="button"
@@ -32,7 +28,7 @@ export default function StatusBadge({ status, onClick }: StatusBadgeProps) {
         onClick ? "cursor-pointer" : "cursor-default"
       )}
     >
-      {statusLabels[status]}
+      {t(`statusBadge.${status}`)}
     </button>
   );
 }

@@ -40,5 +40,88 @@
   "layout": {
     "title": "Cashier Ledger",
     "subtitle": "Daily dashboard"
+  },
+  "nav": {
+    "today": "Today",
+    "summary": "Summary",
+    "history": "History",
+    "manageCashiers": "Manage Cashiers",
+    "cashiers": "Cashiers",
+    "logout": "Logout"
+  },
+  "statusBadge": {
+    "CONFIRMED": "Confirmed",
+    "PENDING": "Pending",
+    "CANCELLED": "Cancelled"
+  },
+  "filterBar": {
+    "status": "Status",
+    "all": "All",
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "cancelled": "Cancelled",
+    "paymentMethod": "Payment Method",
+    "from": "From",
+    "to": "To",
+    "clearFilters": "Clear filters",
+    "search": "Search"
+  },
+  "summaryStats": {
+    "totalTransactions": "Total Transactions",
+    "totalConfirmed": "Total Confirmed",
+    "totalPending": "Total Pending",
+    "totalCancelled": "Total Cancelled"
+  },
+  "history": {
+    "title": "History",
+    "searchPlaceholder": "Search transactions...",
+    "noTransactions": "No transactions found.",
+    "subtitle": "Search past sessions and filter transactions.",
+    "transactionsFound": "transactions found"
+  },
+  "summary": {
+    "title": "Summary",
+    "noTransactions": "No sessions found for this period.",
+    "subtitle": "View daily summaries and download reports.",
+    "generatePdf": "Generate PDF"
+  },
+  "cashiers": {
+    "title": "Manage Cashiers",
+    "addBtn": "Add Cashier",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "cancel": "Cancel",
+    "loading": "Loading cashiers...",
+    "noCashiers": "No cashiers found.",
+    "subtitle": "Add, edit, or remove cashiers from the system.",
+    "addNew": "Add New Cashier",
+    "creating": "Creating...",
+    "create": "Create Cashier",
+    "existing": "Existing Cashiers",
+    "added": "Added: ",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this cashier?"
+  },
+  "transactionTable": {
+    "buyerName": "Buyer Name",
+    "time": "Time",
+    "paymentMethod": "Payment Method",
+    "items": "Items",
+    "amount": "Amount",
+    "status": "Status",
+    "delete": "Delete"
+  },
+  "summaryClient": {
+    "title": "Daily Summary",
+    "reviewTotals": "Review today's totals and follow-ups.",
+    "noSession": "No session yet.",
+    "breakdown": "Breakdown by payment method",
+    "noPayments": "No payments yet.",
+    "pendingFollowUp": "Pending follow-up",
+    "markConfirmed": "Mark confirmed",
+    "noPending": "No pending transactions.",
+    "recentTransactions": "Recent transactions",
+    "noTransactions": "No transactions yet."
   }
 }

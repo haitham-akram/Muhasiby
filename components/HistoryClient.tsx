@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import FilterBar from "@/components/FilterBar";
 import FilterChip from "@/components/FilterChip";
+import { useLanguage } from "@/app/providers";
 import SearchBar from "@/components/SearchBar";
 import type { Session, Transaction } from "@/lib/types";
 
 const defaultMethods = ["Bank Transfer", "Wallet", "Cash"];
 
 export default function HistoryClient() {
+  const { t } = useLanguage();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionTransactions, setSessionTransactions] = useState<
     Record<string, Transaction[]>
@@ -127,9 +129,9 @@ export default function HistoryClient() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
       <div>
-        <h1 className="text-3xl font-semibold">History</h1>
+        <h1 className="text-3xl font-semibold">{t("history.title")}</h1>
         <p className="text-sm text-text-secondary">
-          Search past sessions and filter transactions.
+          {t("history.subtitle")}
         </p>
       </div>
 
@@ -155,18 +157,18 @@ export default function HistoryClient() {
 
       <div className="flex flex-wrap gap-2">
         {search ? (
-          <FilterChip label={`Search: ${search}`} onRemove={() => setSearch("")} />
+          <FilterChip label={`${t("filterBar.search")}: ${search}`} onRemove={() => setSearch("")} />
         ) : null}
         {status ? (
-          <FilterChip label={`Status: ${status}`} onRemove={() => setStatus("")} />
+          <FilterChip label={`${t("filterBar.status")}: ${status}`} onRemove={() => setStatus("")} />
         ) : null}
         {method ? (
-          <FilterChip label={`Method: ${method}`} onRemove={() => setMethod("")} />
+          <FilterChip label={`${t("filterBar.paymentMethod")}: ${method}`} onRemove={() => setMethod("")} />
         ) : null}
         {from ? (
-          <FilterChip label={`From: ${from}`} onRemove={() => setFrom("")} />
+          <FilterChip label={`${t("filterBar.from")}: ${from}`} onRemove={() => setFrom("")} />
         ) : null}
-        {to ? <FilterChip label={`To: ${to}`} onRemove={() => setTo("")} /> : null}
+        {to ? <FilterChip label={`${t("filterBar.to")}: ${to}`} onRemove={() => setTo("")} /> : null}
       </div>
 
       {error ? (
@@ -178,7 +180,7 @@ export default function HistoryClient() {
       {hasFilters ? (
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <p className="text-sm text-text-secondary">
-            {results.length} transactions found
+            {results.length} {t("history.transactionsFound")}
           </p>
           {groupedResults.length ? (
             <div className="mt-4 space-y-6">
@@ -191,10 +193,10 @@ export default function HistoryClient() {
                     <table className="w-full text-left text-sm">
                       <thead className="bg-background text-xs uppercase text-text-secondary">
                         <tr>
-                          <th className="px-4 py-3">Buyer</th>
-                          <th className="px-4 py-3">Amount</th>
-                          <th className="px-4 py-3">Method</th>
-                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">{t("transactionTable.buyerName")}</th>
+                          <th className="px-4 py-3">{t("transactionTable.amount")}</th>
+                          <th className="px-4 py-3">{t("transactionTable.paymentMethod")}</th>
+                          <th className="px-4 py-3">{t("transactionTable.status")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -252,10 +254,10 @@ export default function HistoryClient() {
                       <table className="w-full text-left text-sm">
                         <thead className="bg-background text-xs uppercase text-text-secondary">
                           <tr>
-                            <th className="px-4 py-3">Buyer</th>
-                            <th className="px-4 py-3">Amount</th>
-                            <th className="px-4 py-3">Method</th>
-                            <th className="px-4 py-3">Status</th>
+                            <th className="px-4 py-3">{t("transactionTable.buyerName")}</th>
+                            <th className="px-4 py-3">{t("transactionTable.amount")}</th>
+                            <th className="px-4 py-3">{t("transactionTable.paymentMethod")}</th>
+                            <th className="px-4 py-3">{t("transactionTable.status")}</th>
                           </tr>
                         </thead>
                         <tbody>
