@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { sessionId, ...data } = parsed.data;
+  const { sessionId, transactionItems, ...data } = parsed.data;
 
   const session = await prisma.session.findFirst({
     where: {
@@ -121,6 +121,20 @@ export async function POST(request: NextRequest) {
     data: {
       sessionId,
       ...data,
+      transactionItems: transactionItems
+        ? {
+            create: transactionItems.map((item) => ({
+              productId: item.productId || null,
+              name: item.name,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+            })),
+          }
+        : undefined,
+    },
+    include: {
+      transactionItems: true,
     },
   });
 

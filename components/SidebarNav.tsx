@@ -15,6 +15,7 @@ export default function SidebarNav() {
     { href: '/', label: t('nav.today') },
     { href: '/summary', label: t('nav.summary') },
     { href: '/history', label: t('nav.history') },
+    { href: '/inventory', label: t('nav.inventory')},
     { href: '/providers', label: t('nav.providers') },
   ]
 

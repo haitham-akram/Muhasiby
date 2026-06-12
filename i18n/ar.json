@@ -35,7 +35,17 @@
     "savingBtn": "جاري الحفظ...",
     "statusConfirmed": "مؤكد",
     "statusPending": "قيد الانتظار",
-    "statusCancelled": "ملغى"
+    "statusCancelled": "ملغى",
+    "newProductBtn": "+ منتج جديد",
+    "productName": "اسم المنتج",
+    "qty": "الكمية",
+    "price": "السعر",
+    "addRowBtn": "+ إضافة سطر",
+    "newProductTitle": "منتج جديد",
+    "nameLabel": "الاسم",
+    "defaultPriceLabel": "السعر الافتراضي",
+    "cancelBtn": "إلغاء",
+    "saveBtn": "حفظ"
   },
   "layout": {
     "title": "سجل الكاشير",
@@ -48,7 +58,8 @@
     "manageCashiers": "إدارة الكاشير",
     "cashiers": "الكاشير",
     "providers": "الموردين",
-    "logout": "تسجيل خروج"
+    "logout": "تسجيل خروج",
+    "inventory": "المخزون"
   },
   "statusBadge": {
     "CONFIRMED": "مؤكد",
@@ -181,5 +192,21 @@
     "partial": "مدفوع جزئياً",
     "paid": "مدفوع بالكامل",
     "viewDetails": "عرض التفاصيل"
+  },
+  "inventory": {
+    "title": "المخزون",
+    "subtitle": "إدارة المنتجات وعرض تقارير المبيعات",
+    "topSelling": "العناصر الأكثر مبيعاً",
+    "noSalesData": "لا توجد بيانات مبيعات بعد.",
+    "sold": "مباع",
+    "productsDirectory": "دليل المنتجات",
+    "addBtn": "+ إضافة منتج",
+    "cancelBtn": "إلغاء",
+    "productName": "اسم المنتج",
+    "productNamePlaceholder": "مثال: كريم شعر (أزرق)",
+    "defaultPrice": "السعر الافتراضي",
+    "saveBtn": "حفظ المنتج",
+    "savingBtn": "جاري الحفظ...",
+    "noProducts": "لا توجد منتجات في المخزون."
   }
 }

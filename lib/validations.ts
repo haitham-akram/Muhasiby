@@ -31,14 +31,31 @@ const pendingPhoneRefine = (
   }
 };
 
-export const TransactionSchema = BaseTransactionSchema.superRefine((data, ctx) =>
+export const ProductSchema = z.object({
+  name: z.string().min(2),
+  defaultPrice: z.number().min(0),
+});
+
+export const TransactionItemSchema = z.object({
+  productId: z.string().optional(),
+  name: z.string().min(1),
+  quantity: z.number().int().positive(),
+  unitPrice: z.number().min(0),
+  totalPrice: z.number().min(0),
+});
+
+export const TransactionSchema = BaseTransactionSchema.extend({
+  transactionItems: z.array(TransactionItemSchema).optional(),
+}).superRefine((data, ctx) =>
   pendingPhoneRefine(data, ctx, true)
 );
 
 export const TransactionCreateSchema = BaseTransactionSchema.extend({
   sessionId: z.string().min(1),
+  transactionItems: z.array(TransactionItemSchema).optional(),
 }).superRefine((data, ctx) => pendingPhoneRefine(data, ctx, true));
 
 export const TransactionUpdateSchema = BaseTransactionSchema.partial().superRefine(
   (data, ctx) => pendingPhoneRefine(data, ctx, false)
 );
+

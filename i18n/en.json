@@ -35,7 +35,17 @@
     "savingBtn": "Saving...",
     "statusConfirmed": "Confirmed",
     "statusPending": "Pending",
-    "statusCancelled": "Cancelled"
+    "statusCancelled": "Cancelled",
+    "newProductBtn": "+ New Product",
+    "productName": "Product name",
+    "qty": "Qty",
+    "price": "Price",
+    "addRowBtn": "+ Add Row",
+    "newProductTitle": "New Product",
+    "nameLabel": "Name",
+    "defaultPriceLabel": "Default Price",
+    "cancelBtn": "Cancel",
+    "saveBtn": "Save"
   },
   "layout": {
     "title": "Cashier Ledger",
@@ -48,7 +58,8 @@
     "manageCashiers": "Manage Cashiers",
     "cashiers": "Cashiers",
     "providers": "Providers",
-    "logout": "Logout"
+    "logout": "Logout",
+    "inventory": "Inventory"
   },
   "statusBadge": {
     "CONFIRMED": "Confirmed",
@@ -181,5 +192,21 @@
     "partial": "Partial",
     "paid": "Paid",
     "viewDetails": "View Details"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Manage your products and view sales reports",
+    "topSelling": "Top Selling Items",
+    "noSalesData": "No sales data yet.",
+    "sold": "sold",
+    "productsDirectory": "Products Directory",
+    "addBtn": "+ Add Product",
+    "cancelBtn": "Cancel",
+    "productName": "Product Name",
+    "productNamePlaceholder": "e.g. Hair Cream (Blue)",
+    "defaultPrice": "Default Price",
+    "saveBtn": "Save Product",
+    "savingBtn": "Saving...",
+    "noProducts": "No products in inventory."
   }
 }
