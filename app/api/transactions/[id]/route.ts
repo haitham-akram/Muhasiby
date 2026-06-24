@@ -53,9 +53,24 @@ export async function PATCH(
     );
   }
 
+  const { paymentSplits, buyerPhone, buyerName, ...updateData } = parsed.data;
+
+  const dataToUpdate: any = { ...updateData };
+  if (buyerName !== undefined) dataToUpdate.buyerName = buyerName;
+  if (buyerPhone !== undefined) {
+    dataToUpdate.customer = buyerPhone
+      ? {
+          connectOrCreate: {
+            where: { phone: buyerPhone },
+            create: { name: buyerName || existing.buyerName, phone: buyerPhone },
+          },
+        }
+      : { disconnect: true };
+  }
+
   const transaction = await prisma.transaction.update({
     where: { id: params.id },
-    data: parsed.data,
+    data: dataToUpdate,
   });
 
   return NextResponse.json({ transaction });

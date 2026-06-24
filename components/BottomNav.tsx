@@ -16,6 +16,7 @@ export default function BottomNav() {
     { href: '/summary', label: t('nav.summary') },
     { href: '/history', label: t('nav.history') },
     { href: '/inventory', label: 'Inventory' },
+    { href: '/customers', label: t('nav.customers') || 'Customers' },
   ]
 
   if (session?.user?.role === 'ADMIN') {

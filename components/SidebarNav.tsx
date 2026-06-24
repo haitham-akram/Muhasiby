@@ -17,6 +17,7 @@ export default function SidebarNav() {
     { href: '/history', label: t('nav.history') },
     { href: '/inventory', label: t('nav.inventory')},
     { href: '/providers', label: t('nav.providers') },
+    { href: '/customers', label: t('nav.customers') || 'Customers' },
   ]
 
   if (session?.user?.role === 'ADMIN') {

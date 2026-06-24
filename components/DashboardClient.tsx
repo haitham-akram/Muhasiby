@@ -1,16 +1,20 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-
+import { useState } from 'react'
+import { useSession } from '@/hooks/useSession'
+import { useTransactions } from '@/hooks/useTransactions'
 import TransactionForm from '@/components/TransactionForm'
 import TransactionTable from '@/components/TransactionTable'
-import type { Session, Transaction, TransactionStatus } from '@/lib/types'
+import StatsBar from '@/components/StatsBar'
+import type { Transaction, TransactionStatus, PaymentSplit } from '@/lib/types'
 import { useLanguage } from '@/app/providers'
+import { mutate } from 'swr'
 
 type TransactionFormValues = {
   buyerName: string
   items: string
   paymentMethod: string
+  paymentSplits?: PaymentSplit[]
   amount: number
   status: TransactionStatus
   buyerPhone?: string
@@ -18,62 +22,23 @@ type TransactionFormValues = {
 
 export default function DashboardClient() {
   const { t } = useLanguage()
-  const [session, setSession] = useState<Session | null>(null)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { session, isLoading: isSessionLoading, mutateSession } = useSession()
+  const { transactions, isLoading: isTransactionsLoading, mutateTransactions } = useTransactions(session?.id)
+  
   const [isCreatingSession, setIsCreatingSession] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
-  const loadTransactions = useCallback(async (sessionId: string) => {
-    const response = await fetch(`/api/transactions?sessionId=${sessionId}`)
-    if (!response.ok) {
-      throw new Error('Failed to load transactions')
-    }
-    const data = await response.json()
-    setTransactions(data.transactions ?? [])
-  }, [])
-
-  const loadSession = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const response = await fetch('/api/sessions?today=true')
-      if (!response.ok) {
-        throw new Error('Failed to load session')
-      }
-      const data = await response.json()
-      setSession(data.session)
-      if (data.session?.id) {
-        await loadTransactions(data.session.id)
-      } else {
-        setTransactions([])
-      }
-    } catch {
-      setError('Unable to load session data.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [loadTransactions])
-
-  useEffect(() => {
-    void loadSession()
-  }, [loadSession])
+  const isLoading = isSessionLoading || isTransactionsLoading
 
   async function handleOpenSession() {
     setIsCreatingSession(true)
     setError(null)
     try {
       const response = await fetch('/api/sessions', { method: 'POST' })
-      if (!response.ok) {
-        throw new Error('Failed to open session')
-      }
-      const data = await response.json()
-      setSession(data.session)
-      if (data.session?.id) {
-        await loadTransactions(data.session.id)
-      }
+      if (!response.ok) throw new Error('Failed to open session')
+      await mutateSession() // Refetch session
     } catch {
       setError('Unable to open a new session.')
     } finally {
@@ -89,6 +54,26 @@ export default function DashboardClient() {
 
     setIsSubmitting(true)
     setError(null)
+
+    // Optimistic transaction
+    const optimisticTx: Transaction = {
+      id: `temp-${Date.now()}`,
+      sessionId: session.id,
+      buyerName: values.buyerName,
+      buyerPhone: values.buyerPhone || null,
+      items: values.items,
+      paymentMethod: values.paymentMethod,
+      paymentSplits: values.paymentSplits,
+      amount: values.amount,
+      status: values.status,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    // Mutate immediately, but don't revalidate yet
+    mutateTransactions({ transactions: [optimisticTx, ...transactions] }, false)
+    setIsDrawerOpen(false)
+
     try {
       const response = await fetch('/api/transactions', {
         method: 'POST',
@@ -100,21 +85,28 @@ export default function DashboardClient() {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to add transaction')
-      }
-
-      const data = await response.json()
-      setTransactions((prev) => [data.transaction, ...prev])
-      setIsDrawerOpen(false) // Close drawer on success
+      if (!response.ok) throw new Error('Failed to add transaction')
+      
+      // Revalidate to get the real transaction with correct ID and DB data
+      await mutateTransactions()
+      // Also mutate stats to trigger re-fetch of StatsBar metrics
+      mutate(`/api/stats?sessionId=${session.id}`)
     } catch {
       setError('Unable to add transaction.')
+      // Revert optimistic update
+      await mutateTransactions()
     } finally {
       setIsSubmitting(false)
     }
   }
 
   async function handleToggleStatus(transaction: Transaction, nextStatus: TransactionStatus) {
+    // Optimistic update
+    const updatedTransactions = transactions.map(item => 
+      item.id === transaction.id ? { ...item, status: nextStatus } : item
+    )
+    mutateTransactions({ transactions: updatedTransactions }, false)
+
     try {
       const response = await fetch(`/api/transactions/${transaction.id}`, {
         method: 'PATCH',
@@ -122,28 +114,32 @@ export default function DashboardClient() {
         body: JSON.stringify({ status: nextStatus }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to update status')
-      }
-
-      const data = await response.json()
-      setTransactions((prev) => prev.map((item) => (item.id === transaction.id ? data.transaction : item)))
+      if (!response.ok) throw new Error('Failed to update status')
+      
+      await mutateTransactions()
+      mutate(`/api/stats?sessionId=${session?.id}`)
     } catch {
       setError('Unable to update status.')
+      await mutateTransactions()
     }
   }
 
   async function handleDelete(transaction: Transaction) {
+    // Optimistic update
+    const updatedTransactions = transactions.filter(item => item.id !== transaction.id)
+    mutateTransactions({ transactions: updatedTransactions }, false)
+
     try {
       const response = await fetch(`/api/transactions/${transaction.id}`, {
         method: 'DELETE',
       })
-      if (!response.ok) {
-        throw new Error('Failed to delete transaction')
-      }
-      setTransactions((prev) => prev.filter((item) => item.id !== transaction.id))
+      if (!response.ok) throw new Error('Failed to delete transaction')
+      
+      await mutateTransactions()
+      mutate(`/api/stats?sessionId=${session?.id}`)
     } catch {
       setError('Unable to delete transaction.')
+      await mutateTransactions()
     }
   }
 
@@ -160,7 +156,7 @@ export default function DashboardClient() {
         </div>
         {!session ? (
           <button
-            className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:opacity-60"
+            className="rounded-xl bg-black px-4 py-2 text-sm text-white disabled:opacity-60 dark:bg-white dark:text-black"
             onClick={handleOpenSession}
             disabled={isCreatingSession}
           >
@@ -168,27 +164,26 @@ export default function DashboardClient() {
           </button>
         ) : (
           <button
-            className="hidden md:block rounded-xl bg-black px-4 py-2 text-sm text-white"
-            onClick={() => {
-              // Smooth scroll to the inline form on desktop
-              window.scrollTo({ top: 0, behavior: 'smooth' })
-            }}
+            className="hidden md:block rounded-xl bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
             {t('dashboard.newTransaction')}
           </button>
         )}
       </div>
 
-      {error ? (
+      {error && (
         <div className="rounded-2xl border border-status-cancelled bg-card px-4 py-3 text-sm text-status-cancelled">
           {error}
         </div>
-      ) : null}
+      )}
 
-      {isLoading ? <div className="text-sm text-text-secondary">{t('dashboard.loadingSession')}</div> : null}
+      {isLoading && <div className="text-sm text-text-secondary">{t('dashboard.loadingSession')}</div>}
 
-      {session ? (
+      {session && (
         <>
+          <StatsBar sessionId={session.id} />
+
           {/* Mobile Overlay */}
           {isDrawerOpen && (
             <div
@@ -207,7 +202,7 @@ export default function DashboardClient() {
               <h2 className="text-xl font-semibold">{t('dashboard.newTransaction')}</h2>
               <button
                 onClick={() => setIsDrawerOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-black text-xl leading-none"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-black text-xl leading-none dark:bg-neutral-800 dark:text-white"
                 aria-label="Close"
               >
                 &times;
@@ -221,7 +216,7 @@ export default function DashboardClient() {
           {/* Floating Action Button (Mobile) */}
           <button
             onClick={() => setIsDrawerOpen(true)}
-            className="fixed bottom-20 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-lg transition-transform active:scale-95 md:hidden"
+            className="fixed bottom-20 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-lg transition-transform active:scale-95 md:hidden dark:bg-white dark:text-black"
             aria-label="Add Transaction"
           >
             <svg
@@ -236,7 +231,7 @@ export default function DashboardClient() {
             </svg>
           </button>
         </>
-      ) : null}
+      )}
     </main>
   )
 }

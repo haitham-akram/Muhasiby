@@ -2,10 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Light Theme ──────────────────────────────────── */
 :root {
   color-scheme: light;
+
+  --color-background:       #F6F6F6;
+  --color-card:             #FFFFFF;
+  --color-border:           #E5E5E5;
+  --color-accent:           #000000;
+  --color-accent-hover:     #1A1A1A;
+  --color-text-primary:     #111111;
+  --color-text-secondary:   #6B6B6B;
+  --color-status-confirmed: #00A651;
+  --color-status-pending:   #F5A623;
+  --color-status-cancelled: #E74C3C;
+}
+
+/* ─── Dark Theme ───────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+
+  --color-background:       #111111;
+  --color-card:             #1C1C1C;
+  --color-border:           #2A2A2A;
+  --color-accent:           #FFFFFF;
+  --color-accent-hover:     #E5E5E5;
+  --color-text-primary:     #F0F0F0;
+  --color-text-secondary:   #9A9A9A;
+  --color-status-confirmed: #22C55E;
+  --color-status-pending:   #FBBF24;
+  --color-status-cancelled: #F87171;
 }
 
 body {
   @apply bg-background text-text-primary;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }

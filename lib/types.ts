@@ -1,5 +1,11 @@
 export type TransactionStatus = "CONFIRMED" | "PENDING" | "CANCELLED";
 
+export type PaymentSplit = {
+  id?: string;
+  method: string;
+  amount: number;
+};
+
 export type Transaction = {
   id: string;
   sessionId: string;
@@ -7,6 +13,7 @@ export type Transaction = {
   buyerPhone: string | null;
   items: string;
   paymentMethod: string;
+  paymentSplits?: PaymentSplit[];
   amount: number;
   status: TransactionStatus;
   createdAt: string;

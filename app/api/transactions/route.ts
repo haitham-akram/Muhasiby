@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { sessionId, transactionItems, ...data } = parsed.data;
+  const { sessionId, transactionItems, paymentSplits, buyerPhone, buyerName, ...data } = parsed.data;
 
   const session = await prisma.session.findFirst({
     where: {
@@ -119,8 +119,17 @@ export async function POST(request: NextRequest) {
 
   const transaction = await prisma.transaction.create({
     data: {
-      sessionId,
+      session: { connect: { id: sessionId } },
+      buyerName,
       ...data,
+      customer: buyerPhone
+        ? {
+            connectOrCreate: {
+              where: { phone: buyerPhone },
+              create: { name: buyerName, phone: buyerPhone },
+            },
+          }
+        : undefined,
       transactionItems: transactionItems
         ? {
             create: transactionItems.map((item) => ({
@@ -132,9 +141,18 @@ export async function POST(request: NextRequest) {
             })),
           }
         : undefined,
+      paymentSplits: paymentSplits
+        ? {
+            create: paymentSplits.map((split) => ({
+              method: split.method,
+              amount: split.amount,
+            })),
+          }
+        : undefined,
     },
     include: {
       transactionItems: true,
+      paymentSplits: true,
     },
   });
 

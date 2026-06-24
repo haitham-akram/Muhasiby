@@ -58,6 +58,7 @@
     "manageCashiers": "Manage Cashiers",
     "cashiers": "Cashiers",
     "providers": "Providers",
+    "customers": "Customers",
     "logout": "Logout",
     "inventory": "Inventory"
   },

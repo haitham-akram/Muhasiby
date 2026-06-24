@@ -2,24 +2,25 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        background: "#F6F6F6",
-        card: "#FFFFFF",
-        border: "#E5E5E5",
+        background: "var(--color-background)",
+        card: "var(--color-card)",
+        border: "var(--color-border)",
         accent: {
-          DEFAULT: "#000000",
-          hover: "#1A1A1A",
+          DEFAULT: "var(--color-accent)",
+          hover: "var(--color-accent-hover)",
         },
         text: {
-          primary: "#000000",
-          secondary: "#6B6B6B",
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
         },
         status: {
-          confirmed: "#00A651",
-          pending: "#F5A623",
-          cancelled: "#E74C3C",
+          confirmed: "var(--color-status-confirmed)",
+          pending: "var(--color-status-pending)",
+          cancelled: "var(--color-status-cancelled)",
         },
       },
       fontFamily: {
