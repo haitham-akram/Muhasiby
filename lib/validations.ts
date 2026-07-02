@@ -40,6 +40,7 @@ const pendingPhoneRefine = (
 export const ProductSchema = z.object({
   name: z.string().min(2),
   defaultPrice: z.number().min(0),
+  costPrice: z.number().min(0).optional().default(0),
 });
 
 export const TransactionItemSchema = z.object({

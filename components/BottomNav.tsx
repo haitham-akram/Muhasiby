@@ -14,8 +14,9 @@ export default function BottomNav() {
   const navItems = [
     { href: '/', label: t('nav.today') },
     { href: '/summary', label: t('nav.summary') },
+    { href: '/monthly-report', label: t('nav.monthlyReport') },
     { href: '/history', label: t('nav.history') },
-    { href: '/inventory', label: 'Inventory' },
+    { href: '/inventory', label: t('nav.inventory') },
     { href: '/customers', label: t('nav.customers') || 'Customers' },
   ]
 

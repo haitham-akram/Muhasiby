@@ -7,6 +7,7 @@ type Product = {
   id: string
   name: string
   defaultPrice: number
+  costPrice: number
 }
 
 export default function InventoryClient({ initialProducts }: { initialProducts: Product[] }) {
@@ -15,6 +16,7 @@ export default function InventoryClient({ initialProducts }: { initialProducts: 
   const [isAdding, setIsAdding] = useState(false)
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
+  const [costPrice, setCostPrice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function handleAdd(e: React.FormEvent) {
@@ -26,7 +28,7 @@ export default function InventoryClient({ initialProducts }: { initialProducts: 
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, defaultPrice: Number(price) || 0 }),
+        body: JSON.stringify({ name, defaultPrice: Number(price) || 0, costPrice: Number(costPrice) || 0 }),
       })
       if (res.ok) {
         const { product } = await res.json()
@@ -34,6 +36,7 @@ export default function InventoryClient({ initialProducts }: { initialProducts: 
         setIsAdding(false)
         setName('')
         setPrice('')
+        setCostPrice('')
       }
     } catch (err) {
       console.error(err)
@@ -68,6 +71,17 @@ export default function InventoryClient({ initialProducts }: { initialProducts: 
                 placeholder={t('inventory.productNamePlaceholder')}
               />
             </label>
+            <label className="flex flex-col gap-2 text-sm md:col-span-1">
+              {t('inventory.costPrice')}
+              <input
+                type="number"
+                step="0.01"
+                className="rounded-xl border border-border px-3 py-2"
+                value={costPrice}
+                onChange={(e) => setCostPrice(e.target.value)}
+                placeholder="0.00"
+              />
+            </label>
             <label className="flex flex-col gap-2 text-sm">
               {t('inventory.defaultPrice')}
               <input
@@ -100,6 +114,7 @@ export default function InventoryClient({ initialProducts }: { initialProducts: 
             <thead className="bg-background text-xs uppercase text-text-secondary">
               <tr>
                 <th className="px-4 py-3">{t('inventory.productName')}</th>
+                <th className="px-4 py-3">{t('inventory.costPrice')}</th>
                 <th className="px-4 py-3">{t('inventory.defaultPrice')}</th>
               </tr>
             </thead>
@@ -107,6 +122,7 @@ export default function InventoryClient({ initialProducts }: { initialProducts: 
               {products.map((product) => (
                 <tr key={product.id} className="border-t border-border">
                   <td className="px-4 py-3 font-medium">{product.name}</td>
+                  <td className="px-4 py-3">{product.costPrice?.toFixed(2) || '0.00'}</td>
                   <td className="px-4 py-3">{product.defaultPrice.toFixed(2)}</td>
                 </tr>
               ))}

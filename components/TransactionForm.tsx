@@ -24,6 +24,7 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
   const [isAddingProduct, setIsAddingProduct] = useState(false)
   const [newProductName, setNewProductName] = useState('')
   const [newProductPrice, setNewProductPrice] = useState('')
+  const [newProductCostPrice, setNewProductCostPrice] = useState('')
   const [isSavingProduct, setIsSavingProduct] = useState(false)
 
   const {
@@ -54,9 +55,21 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
     name: 'paymentSplits',
   })
 
+  // Derived totals
   const watchItems = useWatch({ control, name: 'transactionItems' })
   const watchPayments = useWatch({ control, name: 'paymentSplits' })
   const status = useWatch({ control, name: 'status' })
+
+  // Compute the running cart total
+  const cartTotal = watchItems
+    ? watchItems.reduce((acc, item) => acc + (item.totalPrice || 0), 0)
+    : 0
+
+  // Compute how much of the total is still unaccounted for in the splits
+  const splitTotal = watchPayments
+    ? watchPayments.reduce((acc, p) => acc + (p.amount || 0), 0)
+    : 0
+  const splitMismatch = watchPayments && watchPayments.length > 1 && Math.abs(splitTotal - cartTotal) > 0.001
 
   useEffect(() => {
     fetch('/api/products')
@@ -74,8 +87,8 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
 
       const newTotal = watchItems.reduce((acc, item) => acc + (item.totalPrice || 0), 0)
       setValue('amount', newTotal, { shouldValidate: true })
-      
-      // Auto-update the first payment split amount if there's only one split
+
+      // Auto-update the first split amount only when there is exactly ONE split
       if (watchPayments && watchPayments.length === 1) {
         setValue('paymentSplits.0.amount', newTotal)
       }
@@ -108,12 +121,14 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
     if (!newProductName.trim()) return
     const parsedPrice = parseFloat(newProductPrice)
     const defaultPrice = isNaN(parsedPrice) || parsedPrice < 0 ? 0 : parsedPrice
+    const parsedCostPrice = parseFloat(newProductCostPrice)
+    const costPrice = isNaN(parsedCostPrice) || parsedCostPrice < 0 ? 0 : parsedCostPrice
     setIsSavingProduct(true)
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newProductName.trim(), defaultPrice }),
+        body: JSON.stringify({ name: newProductName.trim(), defaultPrice, costPrice }),
       })
       if (res.ok) {
         const { product } = await res.json()
@@ -121,6 +136,7 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
         setIsAddingProduct(false)
         setNewProductName('')
         setNewProductPrice('')
+        setNewProductCostPrice('')
         
         // Auto-add it to the cart
         append({
@@ -165,10 +181,11 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
                   className="rounded-xl border border-border bg-background px-3 py-2 flex-1"
                   {...register(`paymentSplits.${index}.method` as const)}
                 >
-                  <option value="Cash">Cash</option>
-                  <option value="Card">Card</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Mobile Payment">Mobile Payment</option>
+                  {(['Cash', 'Card', 'Bank Transfer', 'Mobile Payment'] as const).map((opt) => (
+                    <option key={opt} value={opt}>
+                      {t(`transactionForm.paymentOptions.${opt}`)}
+                    </option>
+                  ))}
                 </select>
                 <input
                   type="number"
@@ -178,16 +195,37 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
                   {...register(`paymentSplits.${index}.amount` as const, { valueAsNumber: true })}
                 />
                 {paymentFields.length > 1 && (
-                  <button type="button" onClick={() => removePayment(index)} className="text-status-cancelled text-lg font-bold">×</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      removePayment(index)
+                      // After removing, give the remaining amount to the first split
+                      setTimeout(() => {
+                        setValue('paymentSplits.0.amount', cartTotal)
+                      }, 0)
+                    }}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-status-cancelled text-status-cancelled hover:bg-status-cancelled hover:text-white transition-colors text-base font-bold"
+                  >
+                    ×
+                  </button>
                 )}
               </div>
             ))}
+            {/* Split mismatch warning */}
+            {splitMismatch && (
+              <p className="text-xs text-status-cancelled">{t('transactionForm.splitPaymentWarning')}</p>
+            )}
             <button
               type="button"
-              onClick={() => appendPayment({ method: 'Cash', amount: 0 })}
-              className="text-xs text-blue-600 hover:underline self-start mt-1"
+              onClick={() => {
+                // Distribute the remaining unallocated amount to the new split
+                const allocated = watchPayments?.reduce((acc, p) => acc + (p.amount || 0), 0) ?? 0
+                const remainder = Math.max(0, cartTotal - allocated)
+                appendPayment({ method: 'Cash', amount: remainder })
+              }}
+              className="self-start rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-border transition-colors mt-1"
             >
-              + Split Payment
+              {t('transactionForm.splitPaymentBtn')}
             </button>
             <input type="hidden" {...register('paymentMethod')} />
             {errors.paymentMethod ? (
@@ -201,7 +239,7 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
             <h3 className="font-medium">{t('transactionForm.itemsPurchased')}</h3>
             <button
               type="button"
-              className="text-xs text-blue-600 hover:underline"
+              className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-border transition-colors"
               onClick={() => setIsAddingProduct(true)}
             >
               {t('transactionForm.newProductBtn')}
@@ -360,6 +398,18 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
                   className="rounded-xl border border-border bg-background px-3 py-2"
                   value={newProductPrice}
                   onChange={(e) => setNewProductPrice(e.target.value)}
+                  placeholder="0.00"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm">
+                {t('inventory.costPrice')}
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="rounded-xl border border-border bg-background px-3 py-2"
+                  value={newProductCostPrice}
+                  onChange={(e) => setNewProductCostPrice(e.target.value)}
                   placeholder="0.00"
                 />
               </label>

@@ -123,6 +123,7 @@ model Product {
   id           String            @id @default(cuid())
   name         String
   defaultPrice Float             @default(0)
+  costPrice    Float             @default(0)
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   
@@ -137,6 +138,7 @@ model TransactionItem {
   product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
   name          String      // Snapshot of product name at the time of sale
   quantity      Int
+  unitCost      Float       @default(0) // Snapshot of product cost at the time of sale
   unitPrice     Float
   totalPrice    Float
 }

@@ -32,6 +32,10 @@ export async function GET(request: NextRequest) {
         sessionId,
         session: { userId },
       },
+      include: {
+        transactionItems: true,
+        paymentSplits: true,
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -86,6 +90,10 @@ export async function GET(request: NextRequest) {
 
   const transactions = await prisma.transaction.findMany({
     where,
+    include: {
+      transactionItems: true,
+      paymentSplits: true,
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -105,6 +113,13 @@ export async function POST(request: NextRequest) {
   }
 
   const { sessionId, transactionItems, paymentSplits, buyerPhone, buyerName, ...data } = parsed.data;
+
+  // Fetch products to get the current costPrice
+  const productIds = transactionItems ? transactionItems.map((i) => i.productId).filter(Boolean) : [];
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds as string[] } },
+  });
+  const productMap = new Map(products.map((p) => [p.id, p]));
 
   const session = await prisma.session.findFirst({
     where: {
@@ -132,13 +147,17 @@ export async function POST(request: NextRequest) {
         : undefined,
       transactionItems: transactionItems
         ? {
-            create: transactionItems.map((item) => ({
-              productId: item.productId || null,
-              name: item.name,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              totalPrice: item.totalPrice,
-            })),
+            create: transactionItems.map((item) => {
+              const product = item.productId ? productMap.get(item.productId) : null;
+              return {
+                productId: item.productId || null,
+                name: item.name,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                unitCost: product ? product.costPrice : 0,
+                totalPrice: item.totalPrice,
+              };
+            }),
           }
         : undefined,
       paymentSplits: paymentSplits

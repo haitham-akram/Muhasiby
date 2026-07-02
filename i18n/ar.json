@@ -43,9 +43,17 @@
     "addRowBtn": "+ إضافة سطر",
     "newProductTitle": "منتج جديد",
     "nameLabel": "الاسم",
-    "defaultPriceLabel": "السعر الافتراضي",
+    "defaultPriceLabel": "سعر البيع",
     "cancelBtn": "إلغاء",
-    "saveBtn": "حفظ"
+    "saveBtn": "حفظ",
+    "splitPaymentBtn": "+ تقسيم الدفع",
+    "splitPaymentWarning": "مجاميع الدفع يجب أن تساوي المبلغ الإجمالي.",
+    "paymentOptions": {
+      "Cash": "كاش",
+      "Card": "بطاقة",
+      "Bank Transfer": "حوالة بنكية",
+      "Mobile Payment": "دفع عبر الجوال"
+    }
   },
   "layout": {
     "title": "سجل الكاشير",
@@ -54,6 +62,7 @@
   "nav": {
     "today": "اليوم",
     "summary": "الملخص",
+    "monthlyReport": "التقرير الشهري",
     "history": "السجل",
     "manageCashiers": "إدارة الكاشير",
     "cashiers": "الكاشير",
@@ -83,7 +92,8 @@
     "totalTransactions": "إجمالي المعاملات",
     "totalConfirmed": "الإجمالي المؤكد",
     "totalPending": "الإجمالي المعلق",
-    "totalCancelled": "الإجمالي الملغى"
+    "totalCancelled": "الإجمالي الملغى",
+    "totalProfit": "أرباح اليوم"
   },
   "history": {
     "title": "السجل",
@@ -205,9 +215,27 @@
     "cancelBtn": "إلغاء",
     "productName": "اسم المنتج",
     "productNamePlaceholder": "مثال: كريم شعر (أزرق)",
-    "defaultPrice": "السعر الافتراضي",
+    "defaultPrice": "سعر البيع",
+    "costPrice": "سعر الشراء",
     "saveBtn": "حفظ المنتج",
     "savingBtn": "جاري الحفظ...",
     "noProducts": "لا توجد منتجات في المخزون."
+  },
+  "currency": "شيكل",
+  "paymentMethods": {
+    "Cash": "كاش",
+    "Card": "بطاقة",
+    "Bank Transfer": "حوالة بنكية",
+    "Mobile Payment": "دفع عبر الجوال"
+  },
+  "monthlyReport": {
+    "title": "التقرير الشهري",
+    "subtitle": "عرض تفاصيل المبيعات والأرباح وطرق الدفع شهريا.",
+    "loading": "جاري تحميل التقرير...",
+    "dailyBreakdown": "التفصيل اليومي",
+    "noData": "لا توجد معاملات لهذا الشهر.",
+    "date": "التاريخ",
+    "transactions": "المعاملات",
+    "total": "المجموع"
   }
 }

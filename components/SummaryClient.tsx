@@ -8,10 +8,19 @@ import type { Session, Transaction } from '@/lib/types'
 
 export default function SummaryClient() {
   const { t, locale } = useLanguage()
+  const currency = t('currency')
   const [session, setSession] = useState<Session | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+
+  const formatPaymentMethod = (methodStr: string) => {
+    if (!methodStr) return ''
+    return methodStr
+      .split(' + ')
+      .map((m) => t(`paymentMethods.${m}`) || m)
+      .join(' + ')
+  }
 
   useEffect(() => {
     void loadSession()
@@ -87,10 +96,19 @@ export default function SummaryClient() {
       totalConfirmed: 0,
       totalPending: 0,
       totalCancelled: 0,
+      totalProfit: 0,
     }
     transactions.forEach((tx) => {
       if (tx.status === 'CONFIRMED') {
         totals.totalConfirmed += tx.amount
+        
+        let txCost = 0
+        if (tx.transactionItems && tx.transactionItems.length > 0) {
+          tx.transactionItems.forEach((item) => {
+            txCost += (item.unitCost || 0) * item.quantity
+          })
+        }
+        totals.totalProfit += (tx.amount - txCost)
       } else if (tx.status === 'PENDING') {
         totals.totalPending += tx.amount
       } else {
@@ -146,8 +164,8 @@ export default function SummaryClient() {
           {breakdown.length ? (
             breakdown.map(([method, amount]) => (
               <div key={method} className="rounded-xl border border-border bg-background px-4 py-3 text-sm">
-                <p className="text-text-secondary">{method}</p>
-                <p className="text-lg font-semibold">{amount.toFixed(2)} JD</p>
+                <p className="text-text-secondary">{formatPaymentMethod(method)}</p>
+                <p className="text-lg font-semibold">{amount.toFixed(2)} {t('currency')}</p>
               </div>
             ))
           ) : (
@@ -175,7 +193,7 @@ export default function SummaryClient() {
                       </div>
                       <div className="flex items-center justify-between gap-3">
                         <dt className="text-text-secondary">{t('transactionTable.amount')}</dt>
-                        <dd className="text-right">{tx.amount.toFixed(2)}</dd>
+                        <dd className="text-right">{tx.amount.toFixed(2)} {currency}</dd>
                       </div>
                     </dl>
                     <div className="mt-4 flex justify-end">
@@ -205,7 +223,7 @@ export default function SummaryClient() {
                     <tr key={tx.id} className="border-t border-border">
                       <td className="px-4 py-3">{tx.buyerName}</td>
                       <td className="px-4 py-3 text-text-secondary">{tx.buyerPhone || '—'}</td>
-                      <td className="px-4 py-3">{tx.amount.toFixed(2)}</td>
+                      <td className="px-4 py-3">{tx.amount.toFixed(2)} {currency}</td>
                       <td className="px-4 py-3">
                         <button
                           className="text-xs font-medium text-status-confirmed"
@@ -235,16 +253,16 @@ export default function SummaryClient() {
                   <div key={tx.id} className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <p className="font-medium">{tx.buyerName}</p>
-                      <p className="text-xs uppercase text-text-secondary">{tx.status}</p>
+                      <p className="text-xs uppercase text-text-secondary">{t(`statusBadge.${tx.status}`)}</p>
                     </div>
                     <dl className="mt-3 grid gap-2 text-sm">
                       <div className="flex items-center justify-between gap-3">
                         <dt className="text-text-secondary">{t('transactionTable.paymentMethod')}</dt>
-                        <dd className="text-right">{tx.paymentMethod}</dd>
+                        <dd className="text-right">{formatPaymentMethod(tx.paymentMethod)}</dd>
                       </div>
                       <div className="flex items-center justify-between gap-3">
                         <dt className="text-text-secondary">{t('transactionTable.amount')}</dt>
-                        <dd className="text-right">{tx.amount.toFixed(2)}</dd>
+                        <dd className="text-right">{tx.amount.toFixed(2)} {currency}</dd>
                       </div>
                     </dl>
                   </div>
@@ -265,9 +283,9 @@ export default function SummaryClient() {
                   {transactions.map((tx) => (
                     <tr key={tx.id} className="border-t border-border">
                       <td className="px-4 py-3">{tx.buyerName}</td>
-                      <td className="px-4 py-3">{tx.paymentMethod}</td>
+                      <td className="px-4 py-3">{formatPaymentMethod(tx.paymentMethod)}</td>
                       <td className="px-4 py-3">{tx.amount.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-text-secondary">{tx.status}</td>
+                      <td className="px-4 py-3 text-text-secondary">{t(`statusBadge.${tx.status}`)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -14,6 +14,7 @@ export type Transaction = {
   items: string;
   paymentMethod: string;
   paymentSplits?: PaymentSplit[];
+  transactionItems?: TransactionItem[];
   amount: number;
   status: TransactionStatus;
   createdAt: string;
@@ -24,6 +25,17 @@ export type Session = {
   id: string;
   date: string;
   closedAt: string | null;
+};
+
+export type TransactionItem = {
+  id: string;
+  transactionId: string;
+  productId: string | null;
+  name: string;
+  quantity: number;
+  unitCost: number;
+  unitPrice: number;
+  totalPrice: number;
 };
 
 export type BillItem = {
