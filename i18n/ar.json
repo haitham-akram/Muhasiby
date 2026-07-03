@@ -50,9 +50,9 @@
     "splitPaymentWarning": "مجاميع الدفع يجب أن تساوي المبلغ الإجمالي.",
     "paymentOptions": {
       "Cash": "كاش",
-      "Card": "بطاقة",
       "Bank Transfer": "حوالة بنكية",
-      "Mobile Payment": "دفع عبر الجوال"
+      "Mahfaza": "محفظة",
+      "Jawwal Pay": "جوال باي"
     }
   },
   "layout": {
@@ -219,7 +219,15 @@
     "costPrice": "سعر الشراء",
     "saveBtn": "حفظ المنتج",
     "savingBtn": "جاري الحفظ...",
-    "noProducts": "لا توجد منتجات في المخزون."
+    "noProducts": "لا توجد منتجات في المخزون.",
+    "provider": "المورد",
+    "selectProvider": "اختر المورد",
+    "unassignedProvider": "بدون مورد",
+    "category": "الفئة",
+    "selectCategory": "اختر الفئة",
+    "unassignedCategory": "بدون فئة",
+    "newCategoryPlaceholder": "اسم الفئة الجديدة",
+    "createCategory": "إنشاء"
   },
   "currency": "شيكل",
   "paymentMethods": {

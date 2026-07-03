@@ -181,7 +181,7 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
                   className="rounded-xl border border-border bg-background px-3 py-2 flex-1"
                   {...register(`paymentSplits.${index}.method` as const)}
                 >
-                  {(['Cash', 'Card', 'Bank Transfer', 'Mobile Payment'] as const).map((opt) => (
+                  {(['Cash', 'Bank Transfer', 'Mahfaza', 'Jawwal Pay'] as const).map((opt) => (
                     <option key={opt} value={opt}>
                       {t(`transactionForm.paymentOptions.${opt}`)}
                     </option>

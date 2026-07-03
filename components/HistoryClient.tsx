@@ -8,7 +8,7 @@ import { useLanguage } from '@/app/providers'
 import SearchBar from '@/components/SearchBar'
 import type { Session, Transaction } from '@/lib/types'
 
-const defaultMethods = ['Bank Transfer', 'Wallet', 'Cash']
+const defaultMethods = ['Bank Transfer', 'Mahfaza', 'Jawwal Pay', 'Cash']
 
 export default function HistoryClient() {
   const { t, locale } = useLanguage()

@@ -20,8 +20,19 @@ export default async function InventoryPage() {
   const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'ar') as Locale
   const t = (key: string) => getTranslation(locale, key)
 
-  // Fetch all products
   const products = await prisma.product.findMany({
+    include: {
+      category: true,
+      provider: true,
+    },
+    orderBy: { name: 'asc' },
+  })
+
+  const providers = await prisma.provider.findMany({
+    orderBy: { name: 'asc' },
+  })
+
+  const categories = await prisma.category.findMany({
     orderBy: { name: 'asc' },
   })
 
@@ -72,9 +83,12 @@ export default async function InventoryPage() {
           </div>
         </div>
 
-        {/* Products List Section */}
         <div className="md:col-span-2">
-          <InventoryClient initialProducts={products} />
+          <InventoryClient 
+            initialProducts={products} 
+            initialProviders={providers} 
+            initialCategories={categories} 
+          />
         </div>
       </div>
     </div>

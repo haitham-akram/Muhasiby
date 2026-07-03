@@ -1,38 +1,25 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ProductSchema } from "@/lib/validations";
 
-export async function GET(request: NextRequest) {
+const CategorySchema = z.object({
+  name: z.string().min(2),
+});
+
+export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const search = searchParams.get("search")?.trim();
-
-  const where = search
-    ? {
-        name: {
-          contains: search,
-          mode: "insensitive" as const,
-        },
-      }
-    : {};
-
-  const products = await prisma.product.findMany({
-    where,
-    include: {
-      category: true,
-      provider: true,
-    },
+  const categories = await prisma.category.findMany({
     orderBy: { name: "asc" },
   });
 
-  return NextResponse.json({ products });
+  return NextResponse.json({ categories });
 }
 
 export async function POST(request: NextRequest) {
@@ -42,14 +29,24 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const parsed = ProductSchema.safeParse(body);
+  const parsed = CategorySchema.safeParse(body);
+  
   if (!parsed.success) {
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
   }
 
-  const product = await prisma.product.create({
+  // Check for uniqueness
+  const existing = await prisma.category.findUnique({
+    where: { name: parsed.data.name },
+  });
+
+  if (existing) {
+    return NextResponse.json({ message: "Category already exists" }, { status: 400 });
+  }
+
+  const category = await prisma.category.create({
     data: parsed.data,
   });
 
-  return NextResponse.json({ product }, { status: 201 });
+  return NextResponse.json({ category }, { status: 201 });
 }

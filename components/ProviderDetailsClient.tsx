@@ -5,15 +5,50 @@ import { useLanguage } from '@/app/providers'
 import type { Provider, Bill, ProviderPayment } from '@/lib/types'
 import Link from 'next/link'
 
-export default function ProviderDetailsClient({ providerId }: { providerId: string }) {
+type Product = {
+  id: string
+  name: string
+  costPrice: number
+  defaultPrice: number
+}
+
+type BillItemState = {
+  productId?: string | null
+  newProductName?: string | null
+  description: string
+  quantity: number
+  unitPrice: number
+  sellPrice?: number | ''
+  updateCostPrice?: boolean
+  updateSellPrice?: boolean
+  
+  // UI helpers
+  isNewProduct?: boolean
+  costPriceChanged?: boolean
+  sellPriceChanged?: boolean
+}
+
+export default function ProviderDetailsClient({ 
+  providerId, 
+  initialProducts = [] 
+}: { 
+  providerId: string
+  initialProducts?: Product[] 
+}) {
   const { t, locale } = useLanguage()
   const [provider, setProvider] = useState<Provider | null>(null)
+  const [products] = useState<Product[]>(initialProducts)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Add Bill Modal
   const [isAddingBill, setIsAddingBill] = useState(false)
-  const [items, setItems] = useState([{ description: '', quantity: 1, unitPrice: 0 }])
+  const [items, setItems] = useState<BillItemState[]>([{ description: '', quantity: 1, unitPrice: 0, sellPrice: '' }])
+
+  // Confirmation Modals State
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmStep, setConfirmStep] = useState(0) // 0 means ready to submit
+  const [pendingBillSubmit, setPendingBillSubmit] = useState(false)
 
   // Add Payment Modal
   const [isAddingPayment, setIsAddingPayment] = useState(false)
@@ -39,28 +74,117 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
     }
   }
 
-  async function handleAddBill(e: React.FormEvent) {
+  // Check items for needed confirmations
+  function analyzeItemsForConfirmations(currentItems: BillItemState[]) {
+    const skipNewProductConfirm = localStorage.getItem('skipNewProductConfirm') === 'true'
+    
+    return currentItems.map(item => {
+      let isNewProduct = false
+      let costPriceChanged = false
+      let sellPriceChanged = false
+      
+      const matchedProduct = products.find(p => p.id === item.productId || p.name.toLowerCase() === item.description.toLowerCase().trim())
+      
+      if (!matchedProduct && item.description.trim()) {
+        isNewProduct = !skipNewProductConfirm
+      }
+      
+      if (matchedProduct) {
+        if (item.unitPrice !== matchedProduct.costPrice) {
+          costPriceChanged = true
+        }
+        if (item.sellPrice !== '' && item.sellPrice !== undefined && Number(item.sellPrice) !== matchedProduct.defaultPrice) {
+          sellPriceChanged = true
+        }
+      }
+      
+      return {
+        ...item,
+        productId: matchedProduct?.id || null,
+        newProductName: !matchedProduct ? item.description.trim() : null,
+        isNewProduct,
+        costPriceChanged,
+        sellPriceChanged
+      }
+    })
+  }
+
+  function handleBillPreSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const validItems = items.filter(i => i.description.trim() !== '')
+    if (validItems.length === 0) {
+      setError('Needs items')
+      return
+    }
+
+    const analyzedItems = analyzeItemsForConfirmations(validItems)
+    setItems(analyzedItems)
+    
+    // Check if any item needs confirmation
+    const needsConfirm = analyzedItems.some(item => item.isNewProduct || item.costPriceChanged || item.sellPriceChanged)
+    
+    if (needsConfirm) {
+      setConfirmStep(0)
+      setShowConfirmModal(true)
+    } else {
+      submitBill(analyzedItems)
+    }
+  }
+  
+  // Handles the confirmation steps one by one for each item
+  function handleNextConfirmStep() {
+    const currentItem = items[confirmStep]
+    
+    // Move to next item that needs confirmation
+    let nextStep = confirmStep + 1
+    while (nextStep < items.length) {
+      const nextItem = items[nextStep]
+      if (nextItem.isNewProduct || nextItem.costPriceChanged || nextItem.sellPriceChanged) {
+        break
+      }
+      nextStep++
+    }
+    
+    if (nextStep < items.length) {
+      setConfirmStep(nextStep)
+    } else {
+      setShowConfirmModal(false)
+      submitBill(items)
+    }
+  }
+
+  async function submitBill(finalItems: BillItemState[]) {
     setIsSubmitting(true)
     setError(null)
     try {
-      const validItems = items.filter(i => i.description.trim() !== '')
-      if (validItems.length === 0) throw new Error('Needs items')
-      const totalAmount = validItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
+      const totalAmount = finalItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
+
+      const payload = finalItems.map(item => ({
+        productId: item.productId,
+        newProductName: item.newProductName,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        sellPrice: item.sellPrice !== '' ? Number(item.sellPrice) : null,
+        updateCostPrice: item.updateCostPrice,
+        updateSellPrice: item.updateSellPrice
+      }))
 
       const response = await fetch(`/api/providers/${providerId}/bills`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: validItems, totalAmount }),
+        body: JSON.stringify({ items: payload, totalAmount }),
       })
       if (!response.ok) throw new Error('Failed')
       
       setIsAddingBill(false)
-      setItems([{ description: '', quantity: 1, unitPrice: 0 }])
+      setItems([{ description: '', quantity: 1, unitPrice: 0, sellPrice: '' }])
       await fetchProvider()
+      
+      // We'd ideally re-fetch products here too, but refreshing the page works for now
+      window.location.reload() 
     } catch {
       setError('Unable to add bill.')
-    } finally {
       setIsSubmitting(false)
     }
   }
@@ -91,7 +215,7 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
   async function handleExport(type: 'excel' | 'pdf', billId?: string) {
     setExporting(true)
     try {
-      const url = `/api/export/bills?providerId=${providerId}&type=${type}${billId ? `&billId=${billId}` : ''}&lang=${locale}`
+      const url = `/api/export/bills?providerId=${providerId}&type=${type}${billId ? '&billId=' + billId : ''}&lang=${locale}`
       const response = await fetch(url)
       if (!response.ok) throw new Error('Export failed')
       const blob = await response.blob()
@@ -125,6 +249,10 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
   if (!provider) {
     return <div className="p-10 text-center">Provider not found</div>
   }
+
+  // Current item needing confirmation
+  const confirmItem = showConfirmModal ? items[confirmStep] : null
+  const confirmProduct = confirmItem ? products.find(p => p.id === confirmItem.productId) : null
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
@@ -200,24 +328,42 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
 
       {/* Add Bill Form */}
       {isAddingBill && (
-        <form onSubmit={handleAddBill} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <form onSubmit={handleBillPreSubmit} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">{t('providers.addBill')}</h2>
           <div className="space-y-3">
             {items.map((item, index) => (
-              <div key={index} className="flex flex-wrap items-end gap-3">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="mb-1 block text-xs font-medium text-text-secondary">{t('providers.description')}</label>
+              <div key={index} className="flex flex-wrap items-end gap-3 p-4 border border-border rounded-xl bg-gray-50/50">
+                <div className="flex-1 min-w-[200px] relative">
+                  <label className="mb-1 block text-xs font-medium text-text-secondary">
+                    Product Name (Search or New)
+                  </label>
                   <input
                     type="text"
                     required
+                    list="products-datalist"
                     className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm focus:border-black focus:outline-none"
                     value={item.description}
                     onChange={(e) => {
                       const newItems = [...items]
                       newItems[index].description = e.target.value
+                      
+                      // Auto-fill prices if matched exactly
+                      const match = products.find(p => p.name.toLowerCase() === e.target.value.toLowerCase().trim())
+                      if (match) {
+                        newItems[index].productId = match.id
+                        newItems[index].unitPrice = match.costPrice
+                        newItems[index].sellPrice = match.defaultPrice
+                      } else {
+                        newItems[index].productId = null
+                      }
+                      
                       setItems(newItems)
                     }}
+                    placeholder="Type product name..."
                   />
+                  <datalist id="products-datalist">
+                    {products.map(p => <option key={p.id} value={p.name} />)}
+                  </datalist>
                 </div>
                 <div className="w-24">
                   <label className="mb-1 block text-xs font-medium text-text-secondary">{t('providers.quantity')}</label>
@@ -234,7 +380,7 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
                   />
                 </div>
                 <div className="w-32">
-                  <label className="mb-1 block text-xs font-medium text-text-secondary">{t('providers.unitPrice')}</label>
+                  <label className="mb-1 block text-xs font-medium text-text-secondary">Cost Price</label>
                   <input
                     type="number"
                     required step="0.01" min="0"
@@ -247,12 +393,36 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
                     }}
                   />
                 </div>
+                <div className="w-32">
+                  <label className="mb-1 block text-xs font-medium text-text-secondary">New Sell Price</label>
+                  <input
+                    type="number"
+                    step="0.01" min="0"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm focus:border-black focus:outline-none"
+                    value={item.sellPrice}
+                    onChange={(e) => {
+                      const newItems = [...items]
+                      newItems[index].sellPrice = e.target.value === '' ? '' : parseFloat(e.target.value)
+                      setItems(newItems)
+                    }}
+                    placeholder="Optional"
+                  />
+                </div>
+                <div className="flex flex-col justify-end pb-2">
+                  <button type="button" onClick={() => {
+                    const newItems = items.filter((_, i) => i !== index)
+                    if (newItems.length === 0) newItems.push({ description: '', quantity: 1, unitPrice: 0, sellPrice: '' })
+                    setItems(newItems)
+                  }} className="text-status-cancelled hover:opacity-70">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+                </div>
               </div>
             ))}
             <button
               type="button"
               className="text-xs font-medium text-black hover:underline"
-              onClick={() => setItems([...items, { description: '', quantity: 1, unitPrice: 0 }])}
+              onClick={() => setItems([...items, { description: '', quantity: 1, unitPrice: 0, sellPrice: '' }])}
             >
               + {t('providers.addItem')}
             </button>
@@ -266,6 +436,71 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
             </div>
           </div>
         </form>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && confirmItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
+            <h3 className="mb-4 text-xl font-bold">Review: {confirmItem.description}</h3>
+            
+            {confirmItem.isNewProduct && (
+              <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
+                <p className="mb-2 text-sm font-medium text-blue-900">
+                  This product does not exist in your catalog. A new product will be created automatically.
+                </p>
+                <label className="flex items-center gap-2 text-sm text-blue-800">
+                  <input type="checkbox" onChange={(e) => {
+                    if (e.target.checked) localStorage.setItem('skipNewProductConfirm', 'true')
+                    else localStorage.removeItem('skipNewProductConfirm')
+                  }} />
+                  Don't ask me again
+                </label>
+              </div>
+            )}
+
+            {confirmItem.costPriceChanged && confirmProduct && (
+              <div className="mb-4 rounded-xl border border-amber-100 bg-amber-50 p-4">
+                <p className="mb-2 text-sm font-medium text-amber-900">
+                  Cost price changed from <span className="font-bold line-through">{confirmProduct.costPrice.toFixed(2)}</span> to <span className="font-bold">{confirmItem.unitPrice.toFixed(2)}</span>.
+                </p>
+                <label className="flex items-center gap-2 text-sm text-amber-800">
+                  <input type="checkbox" checked={confirmItem.updateCostPrice || false} onChange={(e) => {
+                    const newItems = [...items]
+                    newItems[confirmStep].updateCostPrice = e.target.checked
+                    setItems(newItems)
+                  }} />
+                  Update product cost price?
+                </label>
+              </div>
+            )}
+
+            {confirmItem.sellPriceChanged && confirmProduct && (
+              <div className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                <p className="mb-2 text-sm font-medium text-emerald-900">
+                  Sell price changed from <span className="font-bold line-through">{confirmProduct.defaultPrice.toFixed(2)}</span> to <span className="font-bold">{Number(confirmItem.sellPrice).toFixed(2)}</span>.
+                </p>
+                <label className="flex items-center gap-2 text-sm text-emerald-800">
+                  <input type="checkbox" checked={confirmItem.updateSellPrice || false} onChange={(e) => {
+                    const newItems = [...items]
+                    newItems[confirmStep].updateSellPrice = e.target.checked
+                    setItems(newItems)
+                  }} />
+                  Update product sell price?
+                </label>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button onClick={() => setShowConfirmModal(false)} className="rounded-xl px-4 py-2 text-sm font-medium text-text-secondary hover:bg-black/5">
+                Cancel
+              </button>
+              <button onClick={handleNextConfirmStep} className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/80">
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Grid for Bills and Payments */}
@@ -295,7 +530,6 @@ export default function ProviderDetailsClient({ providerId }: { providerId: stri
                   </button>
                 </div>
                 </div>
-                {/* Could optionally list items here */}
               </div>
             )) : <p className="text-sm text-text-secondary">{t('providers.noBills')}</p>}
           </div>

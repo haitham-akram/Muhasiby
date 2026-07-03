@@ -175,5 +175,19 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // Decrement stock for each sold product
+  if (transactionItems) {
+    const stockUpdates = transactionItems
+      .filter((item) => item.productId)
+      .map((item) =>
+        prisma.product.update({
+          where: { id: item.productId! },
+          data: { stock: { decrement: item.quantity } },
+        })
+      );
+    await Promise.all(stockUpdates);
+  }
+
   return NextResponse.json({ transaction }, { status: 201 });
 }
+

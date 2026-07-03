@@ -50,9 +50,9 @@
     "splitPaymentWarning": "Split amounts must add up to the total.",
     "paymentOptions": {
       "Cash": "Cash",
-      "Card": "Card",
       "Bank Transfer": "Bank Transfer",
-      "Mobile Payment": "Mobile Payment"
+      "Mahfaza": "Mahfaza",
+      "Jawwal Pay": "Jawwal Pay"
     }
   },
   "layout": {
@@ -219,7 +219,15 @@
     "costPrice": "Bought Price",
     "saveBtn": "Save Product",
     "savingBtn": "Saving...",
-    "noProducts": "No products in inventory."
+    "noProducts": "No products in inventory.",
+    "provider": "Provider",
+    "selectProvider": "Select Provider",
+    "unassignedProvider": "Unassigned Provider",
+    "category": "Category",
+    "selectCategory": "Select Category",
+    "unassignedCategory": "Unassigned Category",
+    "newCategoryPlaceholder": "New Category Name",
+    "createCategory": "Create"
   },
   "currency": "₪",
   "paymentMethods": {
