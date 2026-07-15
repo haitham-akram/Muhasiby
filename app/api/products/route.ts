@@ -47,8 +47,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
   }
 
+  const { clientUuid, ...data } = parsed.data;
+
+  if (clientUuid) {
+    const existing = await prisma.product.findUnique({
+      where: { clientUuid },
+    });
+    if (existing) return NextResponse.json({ product: existing }, { status: 200 });
+  }
+
   const product = await prisma.product.create({
-    data: parsed.data,
+    data: {
+      ...data,
+      clientUuid,
+    },
   });
 
   return NextResponse.json({ product }, { status: 201 });

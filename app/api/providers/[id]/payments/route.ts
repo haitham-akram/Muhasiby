@@ -10,16 +10,24 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { amount, date } = await request.json();
+    const { amount, date, clientUuid } = await request.json();
 
     if (!amount || amount <= 0) {
       return NextResponse.json({ message: "Valid amount is required" }, { status: 400 });
+    }
+
+    if (clientUuid) {
+      const existing = await prisma.providerPayment.findUnique({
+        where: { clientUuid },
+      });
+      if (existing) return NextResponse.json({ payment: existing }, { status: 200 });
     }
 
     const payment = await prisma.providerPayment.create({
       data: {
         providerId: params.id,
         amount: parseFloat(amount),
+        clientUuid,
         date: date ? new Date(date) : new Date()
       }
     });

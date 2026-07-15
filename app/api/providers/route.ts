@@ -45,13 +45,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, phone } = await request.json();
+    const { name, phone, clientUuid } = await request.json();
     if (!name) {
       return NextResponse.json({ message: "Name is required" }, { status: 400 });
     }
 
+    if (clientUuid) {
+      const existing = await prisma.provider.findUnique({
+        where: { clientUuid },
+      });
+      if (existing) return NextResponse.json({ provider: existing }, { status: 200 });
+    }
+
     const provider = await prisma.provider.create({
-      data: { name, phone }
+      data: { name, phone, clientUuid }
     });
 
     return NextResponse.json({ provider });

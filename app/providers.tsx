@@ -3,6 +3,7 @@
 import { SessionProvider } from 'next-auth/react'
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { getTranslation, type Locale } from '@/lib/i18n'
+import { SyncProvider } from '@/lib/sync/syncContext'
 
 // ─── Language Context ─────────────────────────────────
 type LanguageContextType = {
@@ -74,7 +75,9 @@ export default function Providers({
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <LanguageContext.Provider value={{ locale, setLocale, t }}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <SyncProvider>{children}</SyncProvider>
+        </SessionProvider>
       </LanguageContext.Provider>
     </ThemeContext.Provider>
   )

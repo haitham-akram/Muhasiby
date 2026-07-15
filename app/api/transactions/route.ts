@@ -112,7 +112,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { sessionId, transactionItems, paymentSplits, buyerPhone, buyerName, ...data } = parsed.data;
+  const { sessionId, transactionItems, paymentSplits, buyerPhone, buyerName, clientUuid, ...data } = parsed.data;
+
+  // Idempotent upsert
+  if (clientUuid) {
+    const existing = await prisma.transaction.findUnique({
+      where: { clientUuid },
+      include: { transactionItems: true, paymentSplits: true },
+    });
+    if (existing) {
+      return NextResponse.json({ transaction: existing });
+    }
+  }
 
   // Fetch products to get the current costPrice
   const productIds = transactionItems ? transactionItems.map((i) => i.productId).filter(Boolean) : [];
@@ -136,6 +147,7 @@ export async function POST(request: NextRequest) {
     data: {
       session: { connect: { id: sessionId } },
       buyerName,
+      clientUuid,
       ...data,
       customer: buyerPhone
         ? {
@@ -150,6 +162,7 @@ export async function POST(request: NextRequest) {
             create: transactionItems.map((item) => {
               const product = item.productId ? productMap.get(item.productId) : null;
               return {
+                clientUuid: item.clientUuid,
                 productId: item.productId || null,
                 name: item.name,
                 quantity: item.quantity,
@@ -163,6 +176,7 @@ export async function POST(request: NextRequest) {
       paymentSplits: paymentSplits
         ? {
             create: paymentSplits.map((split) => ({
+              clientUuid: split.clientUuid,
               method: split.method,
               amount: split.amount,
             })),

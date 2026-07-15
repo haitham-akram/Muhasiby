@@ -6,25 +6,37 @@ import { useTransactions } from '@/hooks/useTransactions'
 import TransactionForm from '@/components/TransactionForm'
 import TransactionTable from '@/components/TransactionTable'
 import StatsBar from '@/components/StatsBar'
-import type { Transaction, TransactionStatus, PaymentSplit } from '@/lib/types'
 import { useLanguage } from '@/app/providers'
-import { mutate } from 'swr'
+import type { LocalTransactionWithDetails } from '@/lib/local/transactionRepo'
+import type { PaymentSplit } from '@/lib/types'
+import { useSession as useNextAuthSession } from 'next-auth/react'
 
-type TransactionFormValues = {
-  buyerName: string
-  items: string
-  paymentMethod: string
-  paymentSplits?: PaymentSplit[]
-  amount: number
-  status: TransactionStatus
-  buyerPhone?: string
-}
+import { z } from 'zod'
+import { TransactionSchema } from '@/lib/validations'
+
+type TransactionFormValues = z.infer<typeof TransactionSchema>
 
 export default function DashboardClient() {
   const { t } = useLanguage()
-  const { session, isLoading: isSessionLoading, mutateSession } = useSession()
-  const { transactions, isLoading: isTransactionsLoading, mutateTransactions } = useTransactions(session?.id)
-  
+  const { data: authData } = useNextAuthSession()
+
+  const {
+    session,
+    isLoading: isSessionLoading,
+    mutateSession,
+    openSession,
+    closeSession,
+  } = useSession()
+
+  const {
+    transactions,
+    isLoading: isTransactionsLoading,
+    mutateTransactions,
+    addTransaction,
+    toggleStatus,
+    removeTransaction,
+  } = useTransactions(session?.uuid)
+
   const [isCreatingSession, setIsCreatingSession] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -36,9 +48,7 @@ export default function DashboardClient() {
     setIsCreatingSession(true)
     setError(null)
     try {
-      const response = await fetch('/api/sessions', { method: 'POST' })
-      if (!response.ok) throw new Error('Failed to open session')
-      await mutateSession() // Refetch session
+      await openSession()
     } catch {
       setError('Unable to open a new session.')
     } finally {
@@ -47,103 +57,103 @@ export default function DashboardClient() {
   }
 
   async function handleAddTransaction(values: TransactionFormValues) {
-    if (!session?.id) {
+    if (!session?.uuid) {
       setError('Open a session before adding transactions.')
       return
     }
 
     setIsSubmitting(true)
     setError(null)
-
-    // Optimistic transaction
-    const optimisticTx: Transaction = {
-      id: `temp-${Date.now()}`,
-      sessionId: session.id,
-      buyerName: values.buyerName,
-      buyerPhone: values.buyerPhone || null,
-      items: values.items,
-      paymentMethod: values.paymentMethod,
-      paymentSplits: values.paymentSplits,
-      amount: values.amount,
-      status: values.status,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-
-    // Mutate immediately, but don't revalidate yet
-    mutateTransactions({ transactions: [optimisticTx, ...transactions] }, false)
     setIsDrawerOpen(false)
 
     try {
-      const response = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: session.id,
-          ...values,
-          buyerPhone: values.buyerPhone || undefined,
-        }),
+      await addTransaction({
+        sessionUuid: session.uuid,
+        sessionServerId: session.serverId,
+        buyerName: values.buyerName,
+        buyerPhone: values.buyerPhone || undefined,
+        items: values.items,
+        paymentMethod: values.paymentMethod,
+        amount: values.amount,
+        status: values.status,
+        transactionItems: values.transactionItems?.map((item) => ({
+          productUuid: item.productId ?? undefined, // productId here is actually the local uuid
+          name: item.name,
+          quantity: item.quantity,
+          unitCost: 0, // Will be resolved during sync
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice,
+        })),
+        paymentSplits: values.paymentSplits?.map((split) => ({
+          method: split.method,
+          amount: split.amount,
+        })),
       })
 
-      if (!response.ok) throw new Error('Failed to add transaction')
-      
-      // Revalidate to get the real transaction with correct ID and DB data
-      await mutateTransactions()
-      // Also mutate stats to trigger re-fetch of StatsBar metrics
-      mutate(`/api/stats?sessionId=${session.id}`)
+      // Invalidate stats if online
+      if (navigator.onLine && session.serverId) {
+        fetch(`/api/stats?sessionId=${session.serverId}`).catch(() => {})
+      }
     } catch {
       setError('Unable to add transaction.')
-      // Revert optimistic update
       await mutateTransactions()
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  async function handleToggleStatus(transaction: Transaction, nextStatus: TransactionStatus) {
-    // Optimistic update
-    const updatedTransactions = transactions.map(item => 
-      item.id === transaction.id ? { ...item, status: nextStatus } : item
-    )
-    mutateTransactions({ transactions: updatedTransactions }, false)
+  async function handleToggleStatus(
+    transaction: LocalTransactionWithDetails,
+    nextStatus: 'CONFIRMED' | 'PENDING' | 'CANCELLED'
+  ) {
+    await toggleStatus(transaction.uuid, nextStatus)
 
-    try {
-      const response = await fetch(`/api/transactions/${transaction.id}`, {
+    // Background sync if online and we have a serverId
+    if (navigator.onLine && transaction.serverId) {
+      fetch(`/api/transactions/${transaction.serverId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus }),
-      })
-
-      if (!response.ok) throw new Error('Failed to update status')
-      
-      await mutateTransactions()
-      mutate(`/api/stats?sessionId=${session?.id}`)
-    } catch {
-      setError('Unable to update status.')
-      await mutateTransactions()
+      }).catch(() => {})
     }
   }
 
-  async function handleDelete(transaction: Transaction) {
-    // Optimistic update
-    const updatedTransactions = transactions.filter(item => item.id !== transaction.id)
-    mutateTransactions({ transactions: updatedTransactions }, false)
+  async function handleDelete(transaction: LocalTransactionWithDetails) {
+    await removeTransaction(transaction.uuid)
 
-    try {
-      const response = await fetch(`/api/transactions/${transaction.id}`, {
-        method: 'DELETE',
-      })
-      if (!response.ok) throw new Error('Failed to delete transaction')
-      
-      await mutateTransactions()
-      mutate(`/api/stats?sessionId=${session?.id}`)
-    } catch {
-      setError('Unable to delete transaction.')
-      await mutateTransactions()
+    if (navigator.onLine && transaction.serverId) {
+      fetch(`/api/transactions/${transaction.serverId}`, { method: 'DELETE' }).catch(() => {})
     }
   }
 
   const sessionStatus = session?.closedAt ? t('dashboard.statusClosed') : t('dashboard.statusOpen')
+
+  // Adapt local transactions to the shape TransactionTable expects (uses `id` field)
+  const adaptedTransactions = transactions.map((tx) => ({
+    id: tx.serverId ?? tx.uuid,
+    sessionId: tx.serverId ?? tx.uuid,
+    buyerName: tx.buyerName,
+    buyerPhone: tx.buyerPhone ?? null,
+    items: tx.items,
+    paymentMethod: tx.paymentMethod,
+    paymentSplits: tx.paymentSplits.map((s) => ({ id: s.serverId ?? s.uuid, method: s.method, amount: s.amount })),
+    transactionItems: tx.transactionItems.map((i) => ({
+      id: i.serverId ?? i.uuid,
+      transactionId: tx.serverId ?? tx.uuid,
+      productId: i.productUuid ?? null,
+      name: i.name,
+      quantity: i.quantity,
+      unitCost: i.unitCost,
+      unitPrice: i.unitPrice,
+      totalPrice: i.totalPrice,
+    })),
+    amount: tx.amount,
+    status: tx.status,
+    createdAt: tx.createdAt,
+    updatedAt: tx.updatedAt,
+    _localUuid: tx.uuid,
+    _syncStatus: tx.syncStatus,
+  }))
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-10">
@@ -182,7 +192,7 @@ export default function DashboardClient() {
 
       {session && (
         <>
-          <StatsBar sessionId={session.id} />
+          <StatsBar sessionId={session.serverId ?? session.uuid} />
 
           {/* Mobile Overlay */}
           {isDrawerOpen && (
@@ -211,7 +221,17 @@ export default function DashboardClient() {
             <TransactionForm onSubmit={handleAddTransaction} isSubmitting={isSubmitting} />
           </div>
 
-          <TransactionTable transactions={transactions} onToggleStatus={handleToggleStatus} onDelete={handleDelete} />
+          <TransactionTable
+            transactions={adaptedTransactions as Parameters<typeof TransactionTable>[0]['transactions']}
+            onToggleStatus={(tx, status) => {
+              const local = transactions.find((t) => (t.serverId ?? t.uuid) === tx.id)
+              if (local) handleToggleStatus(local, status)
+            }}
+            onDelete={(tx) => {
+              const local = transactions.find((t) => (t.serverId ?? t.uuid) === tx.id)
+              if (local) handleDelete(local)
+            }}
+          />
 
           {/* Floating Action Button (Mobile) */}
           <button

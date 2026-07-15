@@ -52,13 +52,32 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ sessions });
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const userId = await getUserId();
   if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { start, end } = getDayBoundaries(new Date());
+  let body = {};
+  try {
+    body = await request.json();
+  } catch (e) {
+    // Ignore if no body provided
+  }
+  const clientUuid = (body as any).clientUuid;
+  const passedDate = (body as any).date;
+
+  const targetDate = passedDate ? new Date(passedDate) : new Date();
+  const { start, end } = getDayBoundaries(targetDate);
+
+  // If clientUuid is provided, try to find by it first
+  if (clientUuid) {
+    const byUuid = await prisma.session.findUnique({
+      where: { clientUuid },
+    });
+    if (byUuid) return NextResponse.json({ session: byUuid });
+  }
+
   const existingSession = await prisma.session.findFirst({
     where: {
       userId,
@@ -70,13 +89,21 @@ export async function POST() {
   });
 
   if (existingSession) {
+    if (clientUuid && !existingSession.clientUuid) {
+      const updated = await prisma.session.update({
+        where: { id: existingSession.id },
+        data: { clientUuid },
+      })
+      return NextResponse.json({ session: updated });
+    }
     return NextResponse.json({ session: existingSession });
   }
 
   const session = await prisma.session.create({
     data: {
       userId,
-      date: new Date(),
+      date: targetDate,
+      clientUuid: clientUuid || undefined,
     },
   });
 

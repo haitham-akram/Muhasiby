@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 
 import { TransactionSchema } from '@/lib/validations'
 import ProductCombobox from '@/components/ProductCombobox'
+import { useProducts } from '@/hooks/useProducts'
 
 type TransactionFormValues = z.infer<typeof TransactionSchema>
 
@@ -20,7 +21,13 @@ type Product = { id: string; name: string; defaultPrice: number }
 
 export default function TransactionForm({ onSubmit, isSubmitting }: TransactionFormProps) {
   const { t } = useLanguage()
-  const [products, setProducts] = useState<Product[]>([])
+  const { products: localProducts, addProduct } = useProducts()
+  // Map LocalProduct (uuid-keyed) to the shape ProductCombobox expects
+  const products: Product[] = localProducts.map((p) => ({
+    id: p.uuid,
+    name: p.name,
+    defaultPrice: p.defaultPrice,
+  }))
   const [isAddingProduct, setIsAddingProduct] = useState(false)
   const [newProductName, setNewProductName] = useState('')
   const [newProductPrice, setNewProductPrice] = useState('')
@@ -71,11 +78,7 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
     : 0
   const splitMismatch = watchPayments && watchPayments.length > 1 && Math.abs(splitTotal - cartTotal) > 0.001
 
-  useEffect(() => {
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((d) => setProducts(d.products || []))
-  }, [])
+  // Products are now loaded from IndexedDB via useProducts hook — no direct fetch needed
 
   useEffect(() => {
     if (watchItems) {
@@ -125,30 +128,43 @@ export default function TransactionForm({ onSubmit, isSubmitting }: TransactionF
     const costPrice = isNaN(parsedCostPrice) || parsedCostPrice < 0 ? 0 : parsedCostPrice
     setIsSavingProduct(true)
     try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newProductName.trim(), defaultPrice, costPrice }),
+      // Write to local IndexedDB first (works offline)
+      const localProduct = await addProduct({
+        name: newProductName.trim(),
+        defaultPrice,
+        costPrice,
+        stock: 0,
       })
-      if (res.ok) {
-        const { product } = await res.json()
-        setProducts((prev) => [...prev, product])
-        setIsAddingProduct(false)
-        setNewProductName('')
-        setNewProductPrice('')
-        setNewProductCostPrice('')
-        
-        // Auto-add it to the cart
-        append({
-          productId: product.id,
-          name: product.name,
-          quantity: 1,
-          unitPrice: product.defaultPrice,
-          totalPrice: product.defaultPrice * 1,
+
+      setIsAddingProduct(false)
+      setNewProductName('')
+      setNewProductPrice('')
+      setNewProductCostPrice('')
+
+      // Auto-add it to the cart
+      append({
+        productId: localProduct.uuid,
+        name: localProduct.name,
+        quantity: 1,
+        unitPrice: localProduct.defaultPrice,
+        totalPrice: localProduct.defaultPrice * 1,
+      })
+
+      // Background sync to server (fire-and-forget)
+      if (navigator.onLine) {
+        fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: localProduct.name, defaultPrice, costPrice }),
         })
-      } else {
-        const errorData = await res.json()
-        console.error('Failed to create product:', errorData)
+          .then(async (res) => {
+            if (res.ok) {
+              const { product } = await res.json()
+              const { markProductSynced } = await import('@/lib/local/productRepo')
+              await markProductSynced(localProduct.uuid, product.id)
+            }
+          })
+          .catch(() => {/* will sync via sync engine */})
       }
     } catch (err) {
       console.error(err)

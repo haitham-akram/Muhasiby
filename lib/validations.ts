@@ -1,11 +1,13 @@
 import { z } from "zod";
 
 export const PaymentSplitSchema = z.object({
+  clientUuid: z.string().optional(),
   method: z.string().min(1),
   amount: z.number().positive(),
 });
 
 const BaseTransactionSchema = z.object({
+  clientUuid: z.string().optional(),
   buyerName: z.string().min(2),
   items: z.string().min(3),
   paymentMethod: z.string().min(1),
@@ -38,6 +40,7 @@ const pendingPhoneRefine = (
 };
 
 export const ProductSchema = z.object({
+  clientUuid: z.string().optional(),
   name: z.string().min(2),
   defaultPrice: z.number().min(0),
   costPrice: z.number().min(0).optional().default(0),
@@ -46,7 +49,8 @@ export const ProductSchema = z.object({
 });
 
 export const TransactionItemSchema = z.object({
-  productId: z.string().optional(),
+  clientUuid: z.string().optional(),
+  productId: z.string().optional().nullable(),
   name: z.string().min(1),
   quantity: z.number().int().positive(),
   unitPrice: z.number().min(0),

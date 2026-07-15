@@ -41,3 +41,29 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { name, phone, clientUuid } = await request.json();
+
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone;
+    if (clientUuid !== undefined) updateData.clientUuid = clientUuid;
+
+    const provider = await prisma.provider.update({
+      where: { id: params.id },
+      data: updateData
+    });
+
+    return NextResponse.json({ provider });
+  } catch (error) {
+    console.error("Update provider error:", error);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
+}

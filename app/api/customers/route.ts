@@ -46,13 +46,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { name, phone } = await request.json();
+  const { name, phone, clientUuid } = await request.json();
   if (!name || !phone) {
     return NextResponse.json({ message: "Name and phone required" }, { status: 400 });
   }
 
+  if (clientUuid) {
+    const existing = await prisma.customer.findUnique({
+      where: { clientUuid },
+    });
+    if (existing) return NextResponse.json({ customer: existing }, { status: 200 });
+  }
+
   const customer = await prisma.customer.create({
-    data: { name, phone }
+    data: { name, phone, clientUuid }
   });
 
   return NextResponse.json({ customer }, { status: 201 });

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 interface InvoiceItem {
+  clientUuid?: string | null;
   productId?: string | null;
   newProductName?: string | null;  // if creating a new product on the fly
   description: string;
@@ -21,10 +22,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { items, totalAmount, date } = await request.json() as {
+    const { items, totalAmount, date, clientUuid } = await request.json() as {
       items: InvoiceItem[];
       totalAmount: number;
       date?: string;
+      clientUuid?: string;
     };
 
     if (!items || !items.length || totalAmount === undefined) {
@@ -52,14 +54,26 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return { ...item, resolvedProductId: productId };
     }));
 
+    if (clientUuid) {
+      const existing = await prisma.bill.findUnique({
+        where: { clientUuid },
+        include: { items: { include: { product: true } } },
+      });
+      if (existing) {
+        return NextResponse.json({ bill: existing });
+      }
+    }
+
     // Create the bill with all items
     const bill = await prisma.bill.create({
       data: {
         providerId: params.id,
         totalAmount,
+        clientUuid,
         date: date ? new Date(date) : new Date(),
         items: {
           create: resolvedItems.map((item) => ({
+            clientUuid: item.clientUuid,
             productId: item.resolvedProductId,
             description: item.description,
             quantity: item.quantity,

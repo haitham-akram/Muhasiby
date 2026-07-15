@@ -3,6 +3,7 @@ import SidebarNav from '@/components/SidebarNav'
 import BottomNav from '@/components/BottomNav'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import ThemeToggle from '@/components/ThemeToggle'
+import SyncStatusIndicator from '@/components/SyncStatusIndicator'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
@@ -37,6 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <div className="lg:hidden">
               <LanguageSwitcher />
             </div>
+            <SyncStatusIndicator />
             <ThemeToggle />
             <LogoutButton />
           </div>
