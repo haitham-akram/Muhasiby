@@ -2,18 +2,15 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useLanguage } from '@/app/providers'
-import type { Provider, Bill, ProviderPayment } from '@/lib/types'
+import { useProducts } from '@/hooks/useProducts'
+import { useBills } from '@/hooks/useBills'
+import { useProviderPayments } from '@/hooks/useProviderPayments'
+import { useProviders } from '@/hooks/useProviders'
+import type { LocalProduct, LocalBillItem } from '@/lib/local/types'
 import Link from 'next/link'
 
-type Product = {
-  id: string
-  name: string
-  costPrice: number
-  defaultPrice: number
-}
-
 type BillItemState = {
-  productId?: string | null
+  productUuid?: string | null
   newProductName?: string | null
   description: string
   quantity: number
@@ -29,17 +26,19 @@ type BillItemState = {
 }
 
 export default function ProviderDetailsClient({ 
-  providerId, 
-  initialProducts = [] 
+  providerId 
 }: { 
   providerId: string
-  initialProducts?: Product[] 
 }) {
   const { t, locale } = useLanguage()
-  const [provider, setProvider] = useState<Provider | null>(null)
-  const [products] = useState<Product[]>(initialProducts)
+  const { providers, isLoading: providersLoading, mutateProviders } = useProviders()
+  const { products, isLoading: productsLoading, mutateProducts } = useProducts()
+  const { bills, isLoading: billsLoading, mutateBills, addBill } = useBills(providerId)
+  const { payments, isLoading: paymentsLoading, mutatePayments, addPayment } = useProviderPayments(providerId)
+
   const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   // Add Bill Modal
   const [isAddingBill, setIsAddingBill] = useState(false)
@@ -47,35 +46,25 @@ export default function ProviderDetailsClient({
 
   // Confirmation Modals State
   const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [confirmStep, setConfirmStep] = useState(0) // 0 means ready to submit
-  const [pendingBillSubmit, setPendingBillSubmit] = useState(false)
+  const [confirmStep, setConfirmStep] = useState(0)
 
   // Add Payment Modal
   const [isAddingPayment, setIsAddingPayment] = useState(false)
   const [paymentAmount, setPaymentAmount] = useState<number | ''>('')
-  
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [exporting, setExporting] = useState(false)
 
+  // Find the current provider from local data
+  const provider = useMemo(() => 
+    providers.find(p => p.uuid === providerId) || null,
+    [providers, providerId]
+  )
+
+  // Load products for autocomplete when provider page loads
   useEffect(() => {
-    void fetchProvider()
-  }, [providerId])
-
-  async function fetchProvider() {
-    try {
-      const response = await fetch(`/api/providers/${providerId}`)
-      if (!response.ok) throw new Error('Failed')
-      const data = await response.json()
-      setProvider(data.provider)
-    } catch {
-      setError(t('providers.noProviders'))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    mutateProducts()
+  }, [mutateProducts])
 
   // Check items for needed confirmations
-  function analyzeItemsForConfirmations(currentItems: BillItemState[]) {
+  function analyzeItemsForConfirmations(currentItems: BillItemState[], availableProducts: LocalProduct[]) {
     const skipNewProductConfirm = localStorage.getItem('skipNewProductConfirm') === 'true'
     
     return currentItems.map(item => {
@@ -83,7 +72,9 @@ export default function ProviderDetailsClient({
       let costPriceChanged = false
       let sellPriceChanged = false
       
-      const matchedProduct = products.find(p => p.id === item.productId || p.name.toLowerCase() === item.description.toLowerCase().trim())
+      const matchedProduct = availableProducts.find(p => 
+        p.uuid === item.productUuid || p.name.toLowerCase() === item.description.toLowerCase().trim()
+      )
       
       if (!matchedProduct && item.description.trim()) {
         isNewProduct = !skipNewProductConfirm
@@ -100,7 +91,7 @@ export default function ProviderDetailsClient({
       
       return {
         ...item,
-        productId: matchedProduct?.id || null,
+        productUuid: matchedProduct?.uuid || null,
         newProductName: !matchedProduct ? item.description.trim() : null,
         isNewProduct,
         costPriceChanged,
@@ -117,7 +108,7 @@ export default function ProviderDetailsClient({
       return
     }
 
-    const analyzedItems = analyzeItemsForConfirmations(validItems)
+    const analyzedItems = analyzeItemsForConfirmations(validItems, products)
     setItems(analyzedItems)
     
     // Check if any item needs confirmation
@@ -133,8 +124,6 @@ export default function ProviderDetailsClient({
   
   // Handles the confirmation steps one by one for each item
   function handleNextConfirmStep() {
-    const currentItem = items[confirmStep]
-    
     // Move to next item that needs confirmation
     let nextStep = confirmStep + 1
     while (nextStep < items.length) {
@@ -159,30 +148,38 @@ export default function ProviderDetailsClient({
     try {
       const totalAmount = finalItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
 
-      const payload = finalItems.map(item => ({
-        productId: item.productId,
-        newProductName: item.newProductName,
+      const billItems = finalItems.map(item => ({
+        productUuid: item.productUuid ?? undefined,
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        sellPrice: item.sellPrice !== '' ? Number(item.sellPrice) : null,
-        updateCostPrice: item.updateCostPrice,
-        updateSellPrice: item.updateSellPrice
+        sellPrice: item.sellPrice !== '' ? Number(item.sellPrice) : undefined,
+        total: item.quantity * item.unitPrice,
       }))
 
-      const response = await fetch(`/api/providers/${providerId}/bills`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: payload, totalAmount }),
+      // Get provider server ID if available
+      const providerData = provider
+      const providerServerId = providerData?.serverId
+
+      await addBill({
+        providerUuid: providerId,
+        providerServerId,
+        totalAmount,
+        status: 'UNPAID',
+        date: new Date().toISOString(),
+        items: billItems,
       })
-      if (!response.ok) throw new Error('Failed')
-      
+
       setIsAddingBill(false)
       setItems([{ description: '', quantity: 1, unitPrice: 0, sellPrice: '' }])
-      await fetchProvider()
+      await mutateBills()
+      await mutateProviders() // Refresh provider totals
       
-      // We'd ideally re-fetch products here too, but refreshing the page works for now
-      window.location.reload() 
+      // If we created new products locally, refresh products
+      const newProducts = finalItems.filter(item => item.isNewProduct && item.newProductName)
+      if (newProducts.length > 0) {
+        await mutateProducts()
+      }
     } catch {
       setError('Unable to add bill.')
       setIsSubmitting(false)
@@ -195,16 +192,20 @@ export default function ProviderDetailsClient({
     setIsSubmitting(true)
     setError(null)
     try {
-      const response = await fetch(`/api/providers/${providerId}/payments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: paymentAmount }),
+      const providerData = provider
+      const providerServerId = providerData?.serverId
+      
+      await addPayment({
+        providerUuid: providerId,
+        providerServerId,
+        amount: Number(paymentAmount),
+        date: new Date().toISOString(),
       })
-      if (!response.ok) throw new Error('Failed')
       
       setIsAddingPayment(false)
       setPaymentAmount('')
-      await fetchProvider()
+      await mutatePayments()
+      await mutateProviders() // Refresh provider totals
     } catch {
       setError('Unable to add payment.')
     } finally {
@@ -215,6 +216,7 @@ export default function ProviderDetailsClient({
   async function handleExport(type: 'excel' | 'pdf', billId?: string) {
     setExporting(true)
     try {
+      // Use local provider UUID for export
       const url = `/api/export/bills?providerId=${providerId}&type=${type}${billId ? '&billId=' + billId : ''}&lang=${locale}`
       const response = await fetch(url)
       if (!response.ok) throw new Error('Export failed')
@@ -242,6 +244,13 @@ export default function ProviderDetailsClient({
 
   const billTotal = useMemo(() => items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0), [items])
 
+  // Compute totals from local data
+  const totalBills = useMemo(() => bills.reduce((sum, b) => sum + b.totalAmount, 0), [bills])
+  const totalPayments = useMemo(() => payments.reduce((sum, p) => sum + p.amount, 0), [payments])
+  const totalDebt = totalBills - totalPayments
+
+  const isLoading = providersLoading || productsLoading || billsLoading || paymentsLoading
+
   if (isLoading) {
     return <div className="p-10 text-center">Loading...</div>
   }
@@ -252,7 +261,7 @@ export default function ProviderDetailsClient({
 
   // Current item needing confirmation
   const confirmItem = showConfirmModal ? items[confirmStep] : null
-  const confirmProduct = confirmItem ? products.find(p => p.id === confirmItem.productId) : null
+  const confirmProduct = confirmItem ? products.find(p => p.uuid === confirmItem.productUuid) : null
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
@@ -264,8 +273,8 @@ export default function ProviderDetailsClient({
         <div>
           <h1 className="text-3xl font-semibold">{provider.name}</h1>
           {provider.phone && <p className="text-sm text-text-secondary">{provider.phone}</p>}
-          <p className={`mt-2 text-lg font-bold ${provider.totalDebt > 0 ? 'text-status-cancelled' : 'text-status-confirmed'}`}>
-            {t('providers.totalDebt')}: {provider.totalDebt.toFixed(2)}
+          <p className={`mt-2 text-lg font-bold ${totalDebt > 0 ? 'text-status-cancelled' : 'text-status-confirmed'}`}>
+            {t('providers.totalDebt')}: {totalDebt.toFixed(2)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -332,8 +341,8 @@ export default function ProviderDetailsClient({
           <h2 className="text-lg font-semibold mb-4">{t('providers.addBill')}</h2>
           <div className="space-y-3">
             {items.map((item, index) => (
-              <div key={index} className="flex flex-wrap items-end gap-3 p-4 border border-border rounded-xl bg-gray-50/50">
-                <div className="flex-1 min-w-[200px] relative">
+              <div key={index} className="grid gap-3 sm:grid-cols-[1fr_60px_80px_80px] p-4 border border-border rounded-xl bg-gray-50/50">
+                <div className="relative sm:col-span-1">
                   <label className="mb-1 block text-xs font-medium text-text-secondary">
                     Product Name (Search or New)
                   </label>
@@ -350,11 +359,11 @@ export default function ProviderDetailsClient({
                       // Auto-fill prices if matched exactly
                       const match = products.find(p => p.name.toLowerCase() === e.target.value.toLowerCase().trim())
                       if (match) {
-                        newItems[index].productId = match.id
+                        newItems[index].productUuid = match.uuid
                         newItems[index].unitPrice = match.costPrice
                         newItems[index].sellPrice = match.defaultPrice
                       } else {
-                        newItems[index].productId = null
+                        newItems[index].productUuid = null
                       }
                       
                       setItems(newItems)
@@ -362,10 +371,10 @@ export default function ProviderDetailsClient({
                     placeholder="Type product name..."
                   />
                   <datalist id="products-datalist">
-                    {products.map(p => <option key={p.id} value={p.name} />)}
+                    {products.map(p => <option key={p.uuid} value={p.name} />)}
                   </datalist>
                 </div>
-                <div className="w-24">
+                <div className="sm:col-span-1">
                   <label className="mb-1 block text-xs font-medium text-text-secondary">{t('providers.quantity')}</label>
                   <input
                     type="number"
@@ -379,7 +388,7 @@ export default function ProviderDetailsClient({
                     }}
                   />
                 </div>
-                <div className="w-32">
+                <div className="sm:col-span-1">
                   <label className="mb-1 block text-xs font-medium text-text-secondary">Cost Price</label>
                   <input
                     type="number"
@@ -393,7 +402,7 @@ export default function ProviderDetailsClient({
                     }}
                   />
                 </div>
-                <div className="w-32">
+                <div className="sm:col-span-1">
                   <label className="mb-1 block text-xs font-medium text-text-secondary">New Sell Price</label>
                   <input
                     type="number"
@@ -408,12 +417,12 @@ export default function ProviderDetailsClient({
                     placeholder="Optional"
                   />
                 </div>
-                <div className="flex flex-col justify-end pb-2">
+                <div className="sm:col-span-4 flex justify-end">
                   <button type="button" onClick={() => {
                     const newItems = items.filter((_, i) => i !== index)
                     if (newItems.length === 0) newItems.push({ description: '', quantity: 1, unitPrice: 0, sellPrice: '' })
                     setItems(newItems)
-                  }} className="text-status-cancelled hover:opacity-70">
+                  }} className="text-status-cancelled hover:opacity-70 p-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                   </button>
                 </div>
@@ -454,7 +463,7 @@ export default function ProviderDetailsClient({
                     if (e.target.checked) localStorage.setItem('skipNewProductConfirm', 'true')
                     else localStorage.removeItem('skipNewProductConfirm')
                   }} />
-                  Don't ask me again
+                  Don&apos;t ask me again
                 </label>
               </div>
             )}
@@ -508,27 +517,35 @@ export default function ProviderDetailsClient({
         <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4">{t('providers.bills')}</h2>
           <div className="space-y-4">
-            {provider.bills?.length ? provider.bills.map(bill => (
-              <div key={bill.id} className="rounded-xl border border-border bg-background p-4 flex flex-col gap-2">
-                <div className="flex justify-between items-start">
+            {bills.length ? bills.map(bill => (
+              <div key={bill.uuid} className="rounded-xl border border-border bg-background p-4 flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                   <div>
                     <p className="font-semibold">{t('providers.totalAmount')}: {bill.totalAmount.toFixed(2)}</p>
                     <p className="text-xs text-text-secondary">{new Date(bill.date).toLocaleDateString()}</p>
                   </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleExport('pdf', bill.id)}
-                    className="text-xs font-medium text-text-secondary border border-border px-2 py-1 rounded hover:bg-black/5"
-                  >
-                    {t('providers.exportPdf')}
-                  </button>
-                  <button
-                    onClick={() => handleExport('excel', bill.id)}
-                    className="text-xs font-medium text-text-secondary border border-border px-2 py-1 rounded hover:bg-black/5"
-                  >
-                    {t('providers.exportExcel')}
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleExport('pdf', bill.uuid)}
+                      className="text-xs font-medium text-text-secondary border border-border px-2 py-1 rounded hover:bg-black/5 whitespace-nowrap"
+                    >
+                      {t('providers.exportPdf')}
+                    </button>
+                    <button
+                      onClick={() => handleExport('excel', bill.uuid)}
+                      className="text-xs font-medium text-text-secondary border border-border px-2 py-1 rounded hover:bg-black/5 whitespace-nowrap"
+                    >
+                      {t('providers.exportExcel')}
+                    </button>
+                  </div>
                 </div>
+                <div className="space-y-1 mt-2">
+                  {bill.items.map((billItem: LocalBillItem, idx: number) => (
+                    <div key={billItem.uuid ?? idx} className="text-sm text-text-secondary flex flex-col sm:flex-row sm:justify-between gap-1">
+                      <span>{billItem.description} x {billItem.quantity}</span>
+                      <span>{billItem.total.toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )) : <p className="text-sm text-text-secondary">{t('providers.noBills')}</p>}
@@ -538,8 +555,8 @@ export default function ProviderDetailsClient({
         <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4">{t('providers.payments')}</h2>
           <div className="space-y-4">
-            {provider.payments?.length ? provider.payments.map(payment => (
-              <div key={payment.id} className="rounded-xl border border-border bg-background p-4 flex justify-between items-center">
+            {payments.length ? payments.map(payment => (
+              <div key={payment.uuid} className="rounded-xl border border-border bg-background p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                 <p className="font-semibold text-status-confirmed">{payment.amount.toFixed(2)}</p>
                 <p className="text-xs text-text-secondary">{new Date(payment.date).toLocaleDateString()}</p>
               </div>

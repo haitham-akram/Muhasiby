@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import InventoryClient from './InventoryClient'
+import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 import { getTranslation, type Locale } from '@/lib/i18n'
 
@@ -20,23 +20,7 @@ export default async function InventoryPage() {
   const locale = (cookieStore.get('NEXT_LOCALE')?.value || 'ar') as Locale
   const t = (key: string) => getTranslation(locale, key)
 
-  const products = await prisma.product.findMany({
-    include: {
-      category: true,
-      provider: true,
-    },
-    orderBy: { name: 'asc' },
-  })
-
-  const providers = await prisma.provider.findMany({
-    orderBy: { name: 'asc' },
-  })
-
-  const categories = await prisma.category.findMany({
-    orderBy: { name: 'asc' },
-  })
-
-  // Basic reporting: Top selling items (by quantity)
+  // Basic reporting: Top selling items (by quantity) - still server-side
   const topItems = await prisma.transactionItem.groupBy({
     by: ['productId', 'name'],
     _sum: {
@@ -84,11 +68,7 @@ export default async function InventoryPage() {
         </div>
 
         <div className="md:col-span-2">
-          <InventoryClient 
-            initialProducts={products} 
-            initialProviders={providers} 
-            initialCategories={categories} 
-          />
+          <InventoryClient />
         </div>
       </div>
     </div>

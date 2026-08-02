@@ -17,9 +17,25 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ errors: parsed.error.flatten() }, { status: 400 });
     }
 
+    const { clientUuid, ...data } = parsed.data;
+
+    // If clientUuid is provided, try to find by clientUuid first (idempotent upsert)
+    if (clientUuid) {
+      const existing = await prisma.product.findUnique({
+        where: { clientUuid },
+      });
+      if (existing) {
+        const updated = await prisma.product.update({
+          where: { id: existing.id },
+          data,
+        });
+        return NextResponse.json({ product: updated });
+      }
+    }
+
     const product = await prisma.product.update({
       where: { id: params.id },
-      data: parsed.data,
+      data: { ...data, ...(clientUuid && { clientUuid }) },
     });
 
     return NextResponse.json({ product });
