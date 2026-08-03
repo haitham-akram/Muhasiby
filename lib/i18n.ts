@@ -6,27 +6,27 @@ export type Locale = "en" | "ar";
 export const translations = {
     en,
     ar,
-};
+} as const;
 
 // Update this to match your actual nested JSON structure
 export type TranslationKey = string; // you can strongly type this if you want
 
-export function getTranslation(locale: Locale, key: TranslationKey) {
+export function getTranslation(locale: Locale, key: TranslationKey): string {
     const keys = key.split(".");
-    let current: any = translations[locale];
+    let current: unknown = translations[locale];
 
     for (const k of keys) {
-        if (current[k] === undefined) {
+        if (current === undefined || current === null || typeof current !== 'object') {
             // Fallback to English if translation is missing
-            let fallback: any = translations["en"];
+            let fallback: unknown = translations["en"];
             for (const fallbackKey of keys) {
-                if (fallback[fallbackKey] === undefined) return key;
-                fallback = fallback[fallbackKey];
+                if (fallback === undefined || fallback === null || typeof fallback !== 'object' || !(fallbackKey in fallback)) return key;
+                fallback = (fallback as Record<string, unknown>)[fallbackKey];
             }
-            return fallback;
+            return String(fallback);
         }
-        current = current[k];
+        current = (current as Record<string, unknown>)[k];
     }
 
-    return current;
+    return String(current);
 }

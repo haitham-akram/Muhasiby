@@ -58,14 +58,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  let body = {};
+  let body: { clientUuid?: string; date?: string } = {};
   try {
     body = await request.json();
-  } catch (e) {
+  } catch {
     // Ignore if no body provided
   }
-  const clientUuid = (body as any).clientUuid;
-  const passedDate = (body as any).date;
+  const clientUuid = body.clientUuid;
+  const passedDate = body.date;
 
   const targetDate = passedDate ? new Date(passedDate) : new Date();
   const { start, end } = getDayBoundaries(targetDate);

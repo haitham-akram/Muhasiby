@@ -8,7 +8,6 @@ import TransactionTable from '@/components/TransactionTable'
 import StatsBar from '@/components/StatsBar'
 import { useLanguage } from '@/app/providers'
 import type { LocalTransactionWithDetails } from '@/lib/local/transactionRepo'
-import type { PaymentSplit } from '@/lib/types'
 import { useSession as useNextAuthSession } from 'next-auth/react'
 
 import { z } from 'zod'
@@ -18,14 +17,12 @@ type TransactionFormValues = z.infer<typeof TransactionSchema>
 
 export default function DashboardClient() {
   const { t } = useLanguage()
-  const { data: authData } = useNextAuthSession()
+  useNextAuthSession()
 
   const {
     session,
     isLoading: isSessionLoading,
-    mutateSession,
     openSession,
-    closeSession,
   } = useSession()
 
   const {

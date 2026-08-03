@@ -51,14 +51,27 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     const { name, phone, clientUuid } = await request.json();
 
-    const updateData: any = {};
+    const updateData: { name?: string; phone?: string; clientUuid?: string } = {};
     if (name !== undefined) updateData.name = name;
     if (phone !== undefined) updateData.phone = phone;
-    if (clientUuid !== undefined) updateData.clientUuid = clientUuid;
+
+    // If clientUuid is provided, try to find by clientUuid first (idempotent upsert)
+    if (clientUuid) {
+      const existing = await prisma.provider.findUnique({
+        where: { clientUuid },
+      });
+      if (existing) {
+        const updated = await prisma.provider.update({
+          where: { id: existing.id },
+          data: updateData,
+        });
+        return NextResponse.json({ provider: updated });
+      }
+    }
 
     const provider = await prisma.provider.update({
       where: { id: params.id },
-      data: updateData
+      data: { ...updateData, ...(clientUuid && { clientUuid }) },
     });
 
     return NextResponse.json({ provider });
@@ -66,4 +79,28 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     console.error("Update provider error:", error);
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const existing = await prisma.provider.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ message: "Provider not found" }, { status: 404 });
+  }
+
+  await prisma.provider.delete({
+    where: { id: params.id },
+  });
+
+  return NextResponse.json({ success: true });
 }

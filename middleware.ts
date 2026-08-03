@@ -8,9 +8,11 @@ export default withAuth(
     {
         callbacks: {
             authorized: ({ req, token }) => {
-                // Protect all routes except /login and /api/auth
+                // Protect all routes except /login, /api/auth, and PWA assets
                 const pathname = req.nextUrl.pathname;
-                if (pathname.startsWith("/login") || pathname.startsWith("/api/auth")) {
+                if (pathname.startsWith("/login") || pathname.startsWith("/api/auth") || 
+                    pathname === "/manifest.webmanifest" || pathname === "/sw.js" ||
+                    pathname.startsWith("/icons/")) {
                     return true; // Always allow these routes
                 }
                 return !!token; // Require a token for everything else
@@ -23,5 +25,5 @@ export default withAuth(
 );
 
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|favicon.ico|login|api/auth).*)"],
+    matcher: ["/((?!_next/static|_next/image|favicon.ico|login|api/auth|manifest|sw.js|icons).*)"],
 };

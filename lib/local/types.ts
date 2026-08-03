@@ -16,6 +16,8 @@ export interface LocalBase {
   retryCount: number
   updatedAt: string
   createdAt: string
+  /** Marked true when a synced record is deleted locally — triggers server DELETE on next sync */
+  pendingDelete?: boolean
 }
 
 export interface LocalSession extends LocalBase {

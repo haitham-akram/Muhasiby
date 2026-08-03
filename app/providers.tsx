@@ -55,6 +55,15 @@ export default function Providers({
     document.documentElement.classList.toggle('dark', preferred === 'dark')
   }, [])
 
+  // Register service worker
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // SW registration failed - app still works without it
+      })
+    }
+  }, [])
+
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === 'light' ? 'dark' : 'light'

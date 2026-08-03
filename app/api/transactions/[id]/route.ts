@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -53,9 +54,11 @@ export async function PATCH(
     );
   }
 
-  const { paymentSplits, buyerPhone, buyerName, ...updateData } = parsed.data;
+  const { buyerPhone, buyerName, ...updateData } = parsed.data;
+  // Exclude paymentSplits from updateData as it's a relation, not a direct field
+  const { paymentSplits: _unused, ...cleanUpdateData } = updateData;
 
-  const dataToUpdate: any = { ...updateData };
+  const dataToUpdate: Prisma.TransactionUpdateInput = { ...cleanUpdateData };
   if (buyerName !== undefined) dataToUpdate.buyerName = buyerName;
   if (buyerPhone !== undefined) {
     dataToUpdate.customer = buyerPhone

@@ -17,11 +17,11 @@ export async function PATCH(
   let body = {};
   try {
     body = await request.json();
-  } catch (e) {
+  } catch {
     // Ignore
   }
 
-  const { closedAt, clientUuid } = body as any;
+  const { closedAt, clientUuid } = body as { closedAt?: string; clientUuid?: string };
 
   const existingSession = await prisma.session.findUnique({
     where: { id },
@@ -53,4 +53,28 @@ export async function PATCH(
   });
 
   return NextResponse.json({ session: updatedSession });
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const existingSession = await prisma.session.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existingSession) {
+    return NextResponse.json({ message: "Session not found" }, { status: 404 });
+  }
+
+  await prisma.session.delete({
+    where: { id: params.id },
+  });
+
+  return NextResponse.json({ success: true });
 }

@@ -8,9 +8,9 @@ export default function Fallback() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-      <h1 className="mb-4 text-2xl font-bold">Offline</h1>
+      <h1 className="mb-4 text-2xl font-bold">{t("offline")}</h1>
       <p className="mb-8 text-text-secondary">
-        You are offline and this page is not cached.
+        {t("offlineDescription")}
       </p>
       <button 
         className="rounded-xl bg-black px-6 py-3 text-white dark:bg-white dark:text-black"

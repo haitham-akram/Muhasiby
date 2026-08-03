@@ -34,6 +34,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Provider not found" }, { status: 404 });
     }
 
+    // Compute totalDebt for the provider
+    const totalBills = provider.bills.reduce((sum, b) => sum + b.totalAmount, 0);
+    const totalPayments = provider.payments.reduce((sum, p) => sum + p.amount, 0);
+    const providerWithDebt = {
+      ...provider,
+      totalDebt: totalBills - totalPayments,
+    };
+
     if (type === "excel") {
       const wb = XLSX.utils.book_new();
 
@@ -90,18 +98,16 @@ export async function GET(request: NextRequest) {
         const bill = provider.bills.find(b => b.id === billId);
         if (!bill) return NextResponse.json({ message: "Bill not found" }, { status: 404 });
         
-        // @ts-ignore
-        const stream = await renderToStream(SingleBillPDF({ bill, provider, lang }));
-        return new NextResponse(stream as any, {
+        const stream = await renderToStream(SingleBillPDF({ bill, provider: providerWithDebt, lang }));
+        return new NextResponse(stream as unknown as ReadableStream<Uint8Array>, {
           headers: {
             "Content-Type": "application/pdf",
             "Content-Disposition": `attachment; filename="bill-${billId}.pdf"`
           }
         });
       } else {
-        // @ts-ignore
-        const stream = await renderToStream(ProviderLedgerPDF({ provider, bills: provider.bills, payments: provider.payments, lang }));
-        return new NextResponse(stream as any, {
+        const stream = await renderToStream(ProviderLedgerPDF({ provider: providerWithDebt, bills: provider.bills, payments: provider.payments, lang }));
+        return new NextResponse(stream as unknown as ReadableStream<Uint8Array>, {
           headers: {
             "Content-Type": "application/pdf",
             "Content-Disposition": `attachment; filename="provider-${providerId}-ledger.pdf"`

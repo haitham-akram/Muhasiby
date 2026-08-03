@@ -23,7 +23,7 @@ export async function GET() {
             orderBy: { createdAt: "desc" },
         });
         return NextResponse.json({ cashiers });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ message: "Error fetching cashiers" }, { status: 500 });
     }
 }

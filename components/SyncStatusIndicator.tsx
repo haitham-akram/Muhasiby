@@ -1,13 +1,11 @@
 'use client'
 
 import { useSyncStatus } from '@/lib/sync/syncContext'
-import { useLanguage } from '@/app/providers'
 import { useEffect, useState } from 'react'
 
 export default function SyncStatusIndicator() {
   const { state, pendingCount, failedCount, lastSyncedAt, conflict, dismissConflict } =
     useSyncStatus()
-  const { t } = useLanguage()
   const [showConflict, setShowConflict] = useState(false)
 
   useEffect(() => {

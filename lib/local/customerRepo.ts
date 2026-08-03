@@ -46,6 +46,38 @@ export async function markCustomerFailed(uuid: string, error: string): Promise<v
   })
 }
 
+export async function updateCustomer(
+  uuid: string,
+  updates: Partial<{ name: string; phone: string }>
+): Promise<void> {
+  await getDB().customers.update(uuid, {
+    ...updates,
+    syncStatus: 'pending',
+    updatedAt: nowISO(),
+  })
+}
+
+/**
+ * Delete a customer.
+ * If the customer has already been synced (has serverId), mark as pendingDelete
+ * instead of hard deleting, so the deletion can be propagated to the server.
+ */
+export async function deleteCustomer(uuid: string): Promise<void> {
+  const db = getDB()
+  const customer = await db.customers.get(uuid)
+  if (!customer) return
+
+  if (customer.serverId) {
+    await db.customers.update(uuid, {
+      pendingDelete: true,
+      syncStatus: 'pending',
+      updatedAt: nowISO(),
+    })
+  } else {
+    await db.customers.delete(uuid)
+  }
+}
+
 /**
  * Upsert customers from server (cache refresh).
  */
