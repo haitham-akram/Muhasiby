@@ -17,14 +17,14 @@ export type Transaction = {
   transactionItems?: TransactionItem[];
   amount: number;
   status: TransactionStatus;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 };
 
 export type Session = {
   id: string;
-  date: string;
-  closedAt: string | null;
+  date: Date | string;
+  closedAt: Date | string | null;
 };
 
 export type TransactionItem = {
@@ -52,9 +52,9 @@ export type Bill = {
   providerId: string;
   totalAmount: number;
   status: "UNPAID" | "PARTIAL" | "PAID";
-  date: string;
-  createdAt: string;
-  updatedAt: string;
+  date: Date | string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   items?: BillItem[];
 };
 
@@ -62,8 +62,8 @@ export type ProviderPayment = {
   id: string;
   providerId: string;
   amount: number;
-  date: string;
-  createdAt: string;
+  date: Date | string;
+  createdAt: Date | string;
 };
 
 export type Provider = {
@@ -73,8 +73,8 @@ export type Provider = {
   totalDebt: number; // calculated field
   billsCount?: number;
   paymentsCount?: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   bills?: Bill[];
   payments?: ProviderPayment[];
 };

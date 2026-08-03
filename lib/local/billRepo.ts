@@ -182,3 +182,30 @@ export async function upsertBillsFromServer(
     }
   })
 }
+
+/**
+ * Delete a bill and its items.
+ * If the bill has already been synced (has serverId), mark as pendingDelete
+ * instead of hard deleting, so the deletion can be propagated to the server.
+ */
+export async function deleteBill(uuid: string): Promise<void> {
+  const db = getDB()
+  const bill = await db.bills.get(uuid)
+  if (!bill) return
+
+  if (bill.serverId) {
+    await db.transaction('rw', [db.bills, db.billItems], async () => {
+      await db.bills.update(uuid, {
+        pendingDelete: true,
+        syncStatus: 'pending',
+        updatedAt: nowISO(),
+      })
+      await db.billItems.where('billUuid').equals(uuid).modify({ pendingDelete: true, syncStatus: 'pending', updatedAt: nowISO() })
+    })
+  } else {
+    await db.transaction('rw', [db.bills, db.billItems], async () => {
+      await db.bills.delete(uuid)
+      await db.billItems.where('billUuid').equals(uuid).delete()
+    })
+  }
+}

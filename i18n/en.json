@@ -245,5 +245,7 @@
     "date": "Date",
     "transactions": "Transactions",
     "total": "Total"
-  }
+  },
+  "offline": "Offline",
+  "offlineDescription": "You are offline and this page is not cached."
 }

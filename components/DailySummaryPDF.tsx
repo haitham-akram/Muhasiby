@@ -125,7 +125,6 @@ export const DailySummaryPDF = ({ transactions, session, cashierName = 'Cashier'
               <Text style={[styles.td, styles.col2]}>{t.items}</Text>
               <Text style={[styles.td, styles.col3]}>{t.paymentMethod}</Text>
               <Text style={[styles.td, styles.col4]}>{t.amount.toFixed(2)}</Text>
-              {/* @ts-ignore */}
               <Text style={[styles.td, styles.col5]}>{dict.statusBadge[t.status] || t.status}</Text>
             </View>
           ))}

@@ -100,16 +100,19 @@ export const ProviderLedgerPDF = ({
             <Text style={[styles.th, styles.colStatus]}>{dict.providers.status}</Text>
             <Text style={[styles.th, styles.colAmount]}>{dict.providers.amount}</Text>
           </View>
-          {ledger.map((item, idx) => (
-            <View key={idx} style={styles.tr}>
-              <Text style={[styles.td, styles.colDate]}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-              <Text style={[styles.td, styles.colType]}>{item.type === 'BILL' ? dict.providers.bills : dict.providers.payments}</Text>
-              <Text style={[styles.td, styles.colStatus]}>{item.type === 'BILL' ? (item as any).status : 'COMPLETED'}</Text>
-              <Text style={[styles.td, styles.colAmount]}>
-                {item.type === 'BILL' ? (item as Bill).totalAmount.toFixed(2) : `-${(item as ProviderPayment).amount.toFixed(2)}`}
-              </Text>
-            </View>
-          ))}
+          {ledger.map((item, idx) => {
+            const isBill = 'status' in item && typeof (item as Bill).status === 'string';
+            return (
+              <View key={idx} style={styles.tr}>
+                <Text style={[styles.td, styles.colDate]}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
+                <Text style={[styles.td, styles.colType]}>{item.type === 'BILL' ? dict.providers.bills : dict.providers.payments}</Text>
+                <Text style={[styles.td, styles.colStatus]}>{isBill ? (item as Bill).status : 'COMPLETED'}</Text>
+                <Text style={[styles.td, styles.colAmount]}>
+                  {item.type === 'BILL' ? (item as Bill).totalAmount.toFixed(2) : `-${(item as ProviderPayment).amount.toFixed(2)}`}
+                </Text>
+              </View>
+            );
+          })}
         </View>
         <Text style={styles.footer}>Generated on {format(new Date(), 'dd MMM yyyy, HH:mm')} by Muhasiby</Text>
       </Page>

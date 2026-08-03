@@ -23,7 +23,7 @@ async function markSynced(
   serverId: string
 ) {
   const db = getDB()
-  await (db as any)[table].update(uuid, { serverId, syncStatus: 'synced', updatedAt: nowISO() })
+  await db[table].update(uuid, { serverId, syncStatus: 'synced', updatedAt: nowISO() })
 }
 
 async function markFailed(
@@ -32,8 +32,8 @@ async function markFailed(
   error: string
 ) {
   const db = getDB()
-  const record = await (db as any)[table].get(uuid)
-  await (db as any)[table].update(uuid, {
+  const record = await db[table].get(uuid)
+  await db[table].update(uuid, {
     syncStatus: (record?.retryCount ?? 0) >= MAX_RETRIES ? 'failed' : 'pending',
     syncError: error,
     retryCount: (record?.retryCount ?? 0) + 1,
@@ -187,8 +187,11 @@ async function syncCustomers(): Promise<void> {
 
   for (const customer of pending) {
     try {
-      const res = await fetch('/api/customers', {
-        method: 'POST',
+      const method = customer.serverId ? 'PATCH' : 'POST'
+      const url = customer.serverId ? `/api/customers/${customer.serverId}` : '/api/customers'
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientUuid: customer.uuid,
@@ -305,8 +308,11 @@ async function syncTransactions(): Promise<void> {
         })),
       }
 
-      const res = await fetch('/api/transactions', {
-        method: 'POST',
+      const method = tx.serverId ? 'PATCH' : 'POST'
+      const url = tx.serverId ? `/api/transactions/${tx.serverId}` : '/api/transactions'
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
@@ -460,6 +466,56 @@ async function syncProviderPayments(): Promise<void> {
   }
 }
 
+// ─── Step 8: Sync Deletions (pendingDelete) ─────────────────────────────────────
+
+async function syncDeletions(): Promise<void> {
+  const db = getDB()
+  const tables: Array<{ table: string; url: string }> = [
+    { table: 'sessions', url: '/api/sessions' },
+    { table: 'products', url: '/api/products' },
+    { table: 'customers', url: '/api/customers' },
+    { table: 'providers', url: '/api/providers' },
+    { table: 'transactions', url: '/api/transactions' },
+    { table: 'bills', url: '/api/providers' }, // bills are under /api/providers/[id]/bills
+    { table: 'providerPayments', url: '/api/providers' }, // payments are under /api/providers/[id]/payments
+  ]
+
+  for (const { table, url } of tables) {
+    // @ts-expect-error - dynamic table access on Dexie database
+    const pendingDelete = await db[table]
+      .where('pendingDelete')
+      .equals(true)
+      .and((r: { serverId?: string; retryCount?: number }) => r.serverId && (r.retryCount ?? 0) < MAX_RETRIES)
+      .toArray()
+
+    for (const record of pendingDelete) {
+      try {
+        let deleteUrl = ''
+        if (table === 'bills') {
+          deleteUrl = `/api/providers/${record.providerServerId}/bills/${record.serverId}`
+        } else if (table === 'providerPayments') {
+          deleteUrl = `/api/providers/${record.providerServerId}/payments/${record.serverId}`
+        } else {
+          deleteUrl = `${url}/${record.serverId}`
+        }
+
+        const res = await fetch(deleteUrl, { method: 'DELETE' })
+
+        if (!res.ok) {
+          await markFailed(table as 'sessions' | 'transactions' | 'products' | 'customers' | 'providers' | 'bills' | 'providerPayments', record.uuid, `DELETE HTTP ${res.status}`)
+          continue
+        }
+
+        // Hard delete locally on success
+        // @ts-expect-error - dynamic table access on Dexie database
+        await db[table].delete(record.uuid)
+      } catch (err) {
+        await markFailed(table as 'sessions' | 'transactions' | 'products' | 'customers' | 'providers' | 'bills' | 'providerPayments', record.uuid, String(err))
+      }
+    }
+  }
+}
+
 // ─── Main sync runner ─────────────────────────────────────────────────────────
 
 let isSyncing = false
@@ -479,6 +535,7 @@ export async function runSync(): Promise<void> {
     await syncTransactions()
     await syncBills()
     await syncProviderPayments()
+    await syncDeletions()
 
     window.dispatchEvent(new CustomEvent('muhasiby:sync-complete'))
   } catch (err) {

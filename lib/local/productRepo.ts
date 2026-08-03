@@ -139,3 +139,24 @@ export async function decrementStock(uuid: string, quantity: number): Promise<vo
     })
   }
 }
+
+/**
+ * Delete a product.
+ * If the product has already been synced (has serverId), mark as pendingDelete
+ * instead of hard deleting, so the deletion can be propagated to the server.
+ */
+export async function deleteProduct(uuid: string): Promise<void> {
+  const db = getDB()
+  const product = await db.products.get(uuid)
+  if (!product) return
+
+  if (product.serverId) {
+    await db.products.update(uuid, {
+      pendingDelete: true,
+      syncStatus: 'pending',
+      updatedAt: nowISO(),
+    })
+  } else {
+    await db.products.delete(uuid)
+  }
+}

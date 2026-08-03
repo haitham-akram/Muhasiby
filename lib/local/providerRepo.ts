@@ -96,3 +96,24 @@ export async function upsertProvidersFromServer(
     }
   })
 }
+
+/**
+ * Delete a provider.
+ * If the provider has already been synced (has serverId), mark as pendingDelete
+ * instead of hard deleting, so the deletion can be propagated to the server.
+ */
+export async function deleteProvider(uuid: string): Promise<void> {
+  const db = getDB()
+  const provider = await db.providers.get(uuid)
+  if (!provider) return
+
+  if (provider.serverId) {
+    await db.providers.update(uuid, {
+      pendingDelete: true,
+      syncStatus: 'pending',
+      updatedAt: nowISO(),
+    })
+  } else {
+    await db.providers.delete(uuid)
+  }
+}

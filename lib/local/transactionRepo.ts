@@ -141,14 +141,34 @@ export async function updateTransactionStatus(
 
 /**
  * Delete a transaction and all its children.
+ * If the transaction has already been synced (has serverId), mark as pendingDelete
+ * instead of hard deleting, so the deletion can be propagated to the server.
  */
 export async function deleteTransaction(uuid: string): Promise<void> {
   const db = getDB()
-  await db.transaction('rw', [db.transactions, db.transactionItems, db.paymentSplits], async () => {
-    await db.transactions.delete(uuid)
-    await db.transactionItems.where('transactionUuid').equals(uuid).delete()
-    await db.paymentSplits.where('transactionUuid').equals(uuid).delete()
-  })
+  const tx = await db.transactions.get(uuid)
+  if (!tx) return
+
+  if (tx.serverId) {
+    // Mark as pendingDelete instead of hard deleting
+    await db.transaction('rw', [db.transactions, db.transactionItems, db.paymentSplits], async () => {
+      await db.transactions.update(uuid, {
+        pendingDelete: true,
+        syncStatus: 'pending',
+        updatedAt: nowISO(),
+      })
+      // Also mark children as pendingDelete
+      await db.transactionItems.where('transactionUuid').equals(uuid).modify({ pendingDelete: true, syncStatus: 'pending', updatedAt: nowISO() })
+      await db.paymentSplits.where('transactionUuid').equals(uuid).modify({ pendingDelete: true, syncStatus: 'pending', updatedAt: nowISO() })
+    })
+  } else {
+    // Never synced — hard delete locally
+    await db.transaction('rw', [db.transactions, db.transactionItems, db.paymentSplits], async () => {
+      await db.transactions.delete(uuid)
+      await db.transactionItems.where('transactionUuid').equals(uuid).delete()
+      await db.paymentSplits.where('transactionUuid').equals(uuid).delete()
+    })
+  }
 }
 
 /**

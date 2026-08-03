@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react'
-import { useLanguage } from '@/app/providers'
 
 type Product = {
   id: string
@@ -21,7 +20,6 @@ export default function ProductCombobox({ products, value, onChange, placeholder
   const [isOpen, setIsOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { t } = useLanguage()
 
   const filtered = products.filter(p => p.name.toLowerCase().includes(value.toLowerCase()))
 

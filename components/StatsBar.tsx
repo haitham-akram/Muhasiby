@@ -18,7 +18,7 @@ type StatsData = {
 
 export default function StatsBar({ sessionId }: StatsProps) {
   const { t } = useLanguage()
-  const { data, error } = useSWR<StatsData>(
+  const { data } = useSWR<StatsData>(
     `/api/stats?sessionId=${sessionId}`,
     fetcher,
     { refreshInterval: 30000 } // Auto-refresh every 30s

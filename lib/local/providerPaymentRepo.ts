@@ -95,3 +95,24 @@ export async function upsertPaymentsFromServer(
     }
   })
 }
+
+/**
+ * Delete a provider payment.
+ * If the payment has already been synced (has serverId), mark as pendingDelete
+ * instead of hard deleting, so the deletion can be propagated to the server.
+ */
+export async function deleteProviderPayment(uuid: string): Promise<void> {
+  const db = getDB()
+  const payment = await db.providerPayments.get(uuid)
+  if (!payment) return
+
+  if (payment.serverId) {
+    await db.providerPayments.update(uuid, {
+      pendingDelete: true,
+      syncStatus: 'pending',
+      updatedAt: nowISO(),
+    })
+  } else {
+    await db.providerPayments.delete(uuid)
+  }
+}

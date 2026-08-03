@@ -136,3 +136,24 @@ export async function upsertSessionFromServer(serverSession: {
     })
   }
 }
+
+/**
+ * Delete a session.
+ * If the session has already been synced (has serverId), mark as pendingDelete
+ * instead of hard deleting, so the deletion can be propagated to the server.
+ */
+export async function deleteSession(uuid: string): Promise<void> {
+  const db = getDB()
+  const session = await db.sessions.get(uuid)
+  if (!session) return
+
+  if (session.serverId) {
+    await db.sessions.update(uuid, {
+      pendingDelete: true,
+      syncStatus: 'pending',
+      updatedAt: nowISO(),
+    })
+  } else {
+    await db.sessions.delete(uuid)
+  }
+}

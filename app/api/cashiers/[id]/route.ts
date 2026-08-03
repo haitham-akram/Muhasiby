@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -21,7 +22,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         const { name, email, password } = body;
         const { id } = params;
 
-        const dataToUpdate: any = {};
+        const dataToUpdate: Prisma.UserUpdateInput = {};
         if (name) dataToUpdate.name = name;
         if (email) dataToUpdate.email = email;
         if (password) {

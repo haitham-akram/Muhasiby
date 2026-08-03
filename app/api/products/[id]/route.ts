@@ -44,3 +44,27 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const existing = await prisma.product.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ message: "Product not found" }, { status: 404 });
+  }
+
+  await prisma.product.delete({
+    where: { id: params.id },
+  });
+
+  return NextResponse.json({ success: true });
+}

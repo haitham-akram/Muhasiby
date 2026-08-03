@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DailySummaryPDF } from "@/components/DailySummaryPDF";
 import { ReceiptPDF } from "@/components/ReceiptPDF";
-import { Transaction, Session } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,17 +34,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === "summary") {
-      // @ts-ignore
       const stream = await renderToStream(DailySummaryPDF({
-        // @ts-ignore
         transactions: dbSession.transactions,
-        // @ts-ignore
         session: dbSession,
         cashierName: session.user.name || "Cashier",
         lang
       }));
 
-      return new NextResponse(stream as any, {
+      return new NextResponse(stream as unknown as ReadableStream<Uint8Array>, {
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="daily-summary-${new Date(dbSession.date).toISOString().split('T')[0]}.pdf"`
@@ -63,9 +59,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ message: "Transaction not found" }, { status: 404 });
       }
 
-      // @ts-ignore
       const stream = await renderToStream(ReceiptPDF({ transaction }));
-      return new NextResponse(stream as any, {
+      return new NextResponse(stream as unknown as ReadableStream<Uint8Array>, {
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="receipt-${transactionId}.pdf"`
