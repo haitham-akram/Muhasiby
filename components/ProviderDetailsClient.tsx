@@ -344,7 +344,7 @@ export default function ProviderDetailsClient({
               <div key={index} className="grid gap-3 sm:grid-cols-[1fr_60px_80px_80px] p-4 border border-border rounded-xl bg-gray-50/50">
                 <div className="relative sm:col-span-1">
                   <label className="mb-1 block text-xs font-medium text-text-secondary">
-                    Product Name (Search or New)
+                    {t('productNameLabel')}
                   </label>
                   <input
                     type="text"
@@ -456,14 +456,14 @@ export default function ProviderDetailsClient({
             {confirmItem.isNewProduct && (
               <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
                 <p className="mb-2 text-sm font-medium text-blue-900">
-                  This product does not exist in your catalog. A new product will be created automatically.
+                  {t('confirmNewProduct')}
                 </p>
                 <label className="flex items-center gap-2 text-sm text-blue-800">
                   <input type="checkbox" onChange={(e) => {
                     if (e.target.checked) localStorage.setItem('skipNewProductConfirm', 'true')
                     else localStorage.removeItem('skipNewProductConfirm')
                   }} />
-                  Don&apos;t ask me again
+                  {t('dontAskAgain')}
                 </label>
               </div>
             )}
@@ -471,7 +471,7 @@ export default function ProviderDetailsClient({
             {confirmItem.costPriceChanged && confirmProduct && (
               <div className="mb-4 rounded-xl border border-amber-100 bg-amber-50 p-4">
                 <p className="mb-2 text-sm font-medium text-amber-900">
-                  Cost price changed from <span className="font-bold line-through">{confirmProduct.costPrice.toFixed(2)}</span> to <span className="font-bold">{confirmItem.unitPrice.toFixed(2)}</span>.
+                  {t('costPriceChanged', { oldPrice: confirmProduct.costPrice.toFixed(2), newPrice: confirmItem.unitPrice.toFixed(2) })}
                 </p>
                 <label className="flex items-center gap-2 text-sm text-amber-800">
                   <input type="checkbox" checked={confirmItem.updateCostPrice || false} onChange={(e) => {
@@ -479,7 +479,7 @@ export default function ProviderDetailsClient({
                     newItems[confirmStep].updateCostPrice = e.target.checked
                     setItems(newItems)
                   }} />
-                  Update product cost price?
+                  {t('updateCostPrice')}
                 </label>
               </div>
             )}
@@ -487,7 +487,7 @@ export default function ProviderDetailsClient({
             {confirmItem.sellPriceChanged && confirmProduct && (
               <div className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
                 <p className="mb-2 text-sm font-medium text-emerald-900">
-                  Sell price changed from <span className="font-bold line-through">{confirmProduct.defaultPrice.toFixed(2)}</span> to <span className="font-bold">{Number(confirmItem.sellPrice).toFixed(2)}</span>.
+                  {t('sellPriceChanged', { oldPrice: confirmProduct.defaultPrice.toFixed(2), newPrice: Number(confirmItem.sellPrice).toFixed(2) })}
                 </p>
                 <label className="flex items-center gap-2 text-sm text-emerald-800">
                   <input type="checkbox" checked={confirmItem.updateSellPrice || false} onChange={(e) => {
@@ -495,17 +495,17 @@ export default function ProviderDetailsClient({
                     newItems[confirmStep].updateSellPrice = e.target.checked
                     setItems(newItems)
                   }} />
-                  Update product sell price?
+                  {t('updateSellPrice')}
                 </label>
               </div>
             )}
 
             <div className="mt-6 flex justify-end gap-2">
               <button onClick={() => setShowConfirmModal(false)} className="rounded-xl px-4 py-2 text-sm font-medium text-text-secondary hover:bg-black/5">
-                Cancel
+                {t('cancel')}
               </button>
               <button onClick={handleNextConfirmStep} className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/80">
-                Continue
+                {t('continue')}
               </button>
             </div>
           </div>

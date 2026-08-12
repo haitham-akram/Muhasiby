@@ -69,7 +69,9 @@
     "providers": "الموردين",
     "customers": "العملاء",
     "logout": "تسجيل خروج",
-    "inventory": "المخزون"
+    "inventory": "المخزون",
+    "english": "English",
+    "arabic": "العربية"
   },
   "statusBadge": {
     "CONFIRMED": "مؤكد",
@@ -247,5 +249,41 @@
     "total": "المجموع"
   },
   "offline": "غير متصل",
-  "offlineDescription": "أنت غير متصل بالإنترنت وهذه الصفحة غير مخزنة مؤقتاً."
+  "offlineDescription": "أنت غير متصل بالإنترنت وهذه الصفحة غير مخزنة مؤقتاً.",
+  "retry": "إعادة المحاولة",
+  "search": "البحث",
+  "searchPlaceholder": "البحث باسم المشتري أو المبلغ",
+  "productNameLabel": "اسم المنتج (بحث أو جديد)",
+  "confirmNewProduct": "هذا المنتج غير موجود في الكتالوج الخاص بك. سيتم إنشاء منتج جديد تلقائياً.",
+  "dontAskAgain": "لا تسألني مرة أخرى",
+  "costPriceChanged": "تغير سعر التكلفة من {oldPrice} إلى {newPrice}.",
+  "updateCostPrice": "تحديث سعر تكلفة المنتج؟",
+  "sellPriceChanged": "تغير سعر البيع من {oldPrice} إلى {newPrice}.",
+  "updateSellPrice": "تحديث سعر بيع المنتج؟",
+  "continue": "متابعة",
+  "cancel": "إلغاء",
+  "type": "النوع",
+  "completed": "مكتمل",
+  "stockOut": "نفد",
+  "stockLow": "قليل ({stock})",
+  "stockOk": "متوفر ({stock})",
+  "sync": {
+    "offline": "غير متصل",
+    "offlineWithPending": "غير متصل — {count} معلق",
+    "syncing": "جاري المزامنة…",
+    "error": "خطأ في المزامنة — {count} فشل",
+    "pending": "{count} معلق",
+    "synced": "تمت المزامنة",
+    "conflictTitle": "تعارض في المزامنة",
+    "conflictMessage": "تم اكتشاف تعارض أثناء المزامنة. لم يتم تطبيق تغييراتك دون اتصال.",
+    "conflictDetail": "يرجى المراجعة والمصالحة يدوياً مع المسؤول.",
+    "understood": "فهمت"
+  },
+  "customers": {
+    "title": "العملاء",
+    "subtitle": "دفتر عملاء وتتبع الديون.",
+    "totalSpent": "إجمالي الإنفاق",
+    "pendingBalance": "الرصيد المعلق",
+    "lastVisit": "آخر زيارة"
+  }
 }

@@ -96,7 +96,7 @@ export const ProviderLedgerPDF = ({
         <View style={styles.table}>
           <View style={styles.trHead}>
             <Text style={[styles.th, styles.colDate]}>{dict.providers.date}</Text>
-            <Text style={[styles.th, styles.colType]}>Type</Text>
+            <Text style={[styles.th, styles.colType]}>{dict.type}</Text>
             <Text style={[styles.th, styles.colStatus]}>{dict.providers.status}</Text>
             <Text style={[styles.th, styles.colAmount]}>{dict.providers.amount}</Text>
           </View>
@@ -106,7 +106,7 @@ export const ProviderLedgerPDF = ({
               <View key={idx} style={styles.tr}>
                 <Text style={[styles.td, styles.colDate]}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
                 <Text style={[styles.td, styles.colType]}>{item.type === 'BILL' ? dict.providers.bills : dict.providers.payments}</Text>
-                <Text style={[styles.td, styles.colStatus]}>{isBill ? (item as Bill).status : 'COMPLETED'}</Text>
+                <Text style={[styles.td, styles.colStatus]}>{isBill ? (item as Bill).status : dict.completed}</Text>
                 <Text style={[styles.td, styles.colAmount]}>
                   {item.type === 'BILL' ? (item as Bill).totalAmount.toFixed(2) : `-${(item as ProviderPayment).amount.toFixed(2)}`}
                 </Text>
