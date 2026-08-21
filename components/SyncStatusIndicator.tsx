@@ -22,7 +22,7 @@ export default function SyncStatusIndicator() {
   const pill = (() => {
     if (state === 'offline')
       return {
-        label: pendingCount > 0 ? t('sync.offlineWithPending', { count: pendingCount }) : t('sync.offline'),
+        label: pendingCount > 0 ? t('sync.offlineWithPending').replace('{count}', pendingCount.toString()) : t('sync.offline'),
         cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
         dot: 'bg-amber-500',
       }
@@ -34,13 +34,13 @@ export default function SyncStatusIndicator() {
       }
     if (failedCount > 0)
       return {
-        label: t('sync.error', { count: failedCount }),
+        label: t('sync.error').replace('{count}', failedCount.toString()),
         cls: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
         dot: 'bg-red-500',
       }
     if (pendingCount > 0)
       return {
-        label: t('sync.pending', { count: pendingCount }),
+        label: t('sync.pending').replace('{count}', pendingCount.toString()),
         cls: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
         dot: 'bg-yellow-500 animate-pulse',
       }
