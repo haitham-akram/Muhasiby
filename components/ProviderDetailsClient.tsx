@@ -471,7 +471,7 @@ export default function ProviderDetailsClient({
             {confirmItem.costPriceChanged && confirmProduct && (
               <div className="mb-4 rounded-xl border border-amber-100 bg-amber-50 p-4">
                 <p className="mb-2 text-sm font-medium text-amber-900">
-                  {t('costPriceChanged', { oldPrice: confirmProduct.costPrice.toFixed(2), newPrice: confirmItem.unitPrice.toFixed(2) })}
+                  {t('costPriceChanged').replace('{oldPrice}', confirmProduct.costPrice.toFixed(2)).replace('{newPrice}', confirmItem.unitPrice.toFixed(2))}
                 </p>
                 <label className="flex items-center gap-2 text-sm text-amber-800">
                   <input type="checkbox" checked={confirmItem.updateCostPrice || false} onChange={(e) => {
@@ -487,7 +487,7 @@ export default function ProviderDetailsClient({
             {confirmItem.sellPriceChanged && confirmProduct && (
               <div className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
                 <p className="mb-2 text-sm font-medium text-emerald-900">
-                  {t('sellPriceChanged', { oldPrice: confirmProduct.defaultPrice.toFixed(2), newPrice: Number(confirmItem.sellPrice).toFixed(2) })}
+                  {t('sellPriceChanged').replace('{oldPrice}', confirmProduct.defaultPrice.toFixed(2)).replace('{newPrice}', Number(confirmItem.sellPrice).toFixed(2))}
                 </p>
                 <label className="flex items-center gap-2 text-sm text-emerald-800">
                   <input type="checkbox" checked={confirmItem.updateSellPrice || false} onChange={(e) => {
