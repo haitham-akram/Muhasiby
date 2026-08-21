@@ -2,11 +2,13 @@
 
 import { useSyncStatus } from '@/lib/sync/syncContext'
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/app/providers'
 
 export default function SyncStatusIndicator() {
   const { state, pendingCount, failedCount, lastSyncedAt, conflict, dismissConflict } =
     useSyncStatus()
   const [showConflict, setShowConflict] = useState(false)
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (conflict) setShowConflict(true)
@@ -20,30 +22,30 @@ export default function SyncStatusIndicator() {
   const pill = (() => {
     if (state === 'offline')
       return {
-        label: pendingCount > 0 ? `Offline — ${pendingCount} pending` : 'Offline',
+        label: pendingCount > 0 ? t('sync.offlineWithPending', { count: pendingCount }) : t('sync.offline'),
         cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
         dot: 'bg-amber-500',
       }
     if (state === 'syncing')
       return {
-        label: 'Syncing…',
+        label: t('sync.syncing'),
         cls: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
         dot: 'bg-blue-500 animate-pulse',
       }
     if (failedCount > 0)
       return {
-        label: `Sync error — ${failedCount} failed`,
+        label: t('sync.error', { count: failedCount }),
         cls: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
         dot: 'bg-red-500',
       }
     if (pendingCount > 0)
       return {
-        label: `${pendingCount} pending`,
+        label: t('sync.pending', { count: pendingCount }),
         cls: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
         dot: 'bg-yellow-500 animate-pulse',
       }
     return {
-      label: 'Synced',
+      label: t('sync.synced'),
       cls: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
       dot: 'bg-green-500',
     }
@@ -64,19 +66,18 @@ export default function SyncStatusIndicator() {
       {showConflict && conflict && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-background p-6 shadow-2xl">
-            <h3 className="mb-2 text-lg font-bold text-status-cancelled">Sync Conflict</h3>
+            <h3 className="mb-2 text-lg font-bold text-status-cancelled">{t('sync.conflictTitle')}</h3>
             <p className="mb-4 text-sm text-text-secondary">
-              {conflict.message ??
-                'A conflict was detected while syncing. Your offline changes were not applied.'}
+              {conflict.message ?? t('sync.conflictMessage')}
             </p>
             <p className="mb-6 text-xs text-text-secondary">
-              Please review and reconcile this manually with your admin.
+              {t('sync.conflictDetail')}
             </p>
             <button
               className="w-full rounded-xl bg-black px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black"
               onClick={handleDismiss}
             >
-              Understood
+              {t('sync.understood')}
             </button>
           </div>
         </div>

@@ -20,7 +20,7 @@ export default function Fallback() {
           }
         }}
       >
-        Retry
+        {t("retry")}
       </button>
     </div>
   );

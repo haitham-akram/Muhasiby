@@ -284,11 +284,11 @@ export default function InventoryClient() {
                       {categoryProducts.map((product) => {
                         let stockBadge
                         if (product.stock <= 0) {
-                          stockBadge = <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Out</span>
+                          stockBadge = <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">{t('stockOut')}</span>
                         } else if (product.stock <= 5) {
-                          stockBadge = <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">Low ({product.stock})</span>
+                          stockBadge = <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">{t('stockLow', { stock: product.stock })}</span>
                         } else {
-                          stockBadge = <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">{product.stock}</span>
+                          stockBadge = <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">{t('stockOk', { stock: product.stock })}</span>
                         }
                         return (
                           <div key={product.uuid} className="rounded-lg border border-border bg-white dark:bg-card p-4 space-y-2">
@@ -320,11 +320,11 @@ export default function InventoryClient() {
                           {categoryProducts.map((product) => {
                             let stockBadge
                             if (product.stock <= 0) {
-                              stockBadge = <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Out</span>
+                              stockBadge = <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">{t('stockOut')}</span>
                             } else if (product.stock <= 5) {
-                              stockBadge = <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">Low ({product.stock})</span>
+                              stockBadge = <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">{t('stockLow', { stock: product.stock })}</span>
                             } else {
-                              stockBadge = <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">{product.stock}</span>
+                              stockBadge = <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">{t('stockOk', { stock: product.stock })}</span>
                             }
                             return (
                               <tr key={product.uuid} className="hover:bg-gray-50 dark:hover:bg-black/20 transition-colors">

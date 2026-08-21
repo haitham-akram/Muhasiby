@@ -69,7 +69,9 @@
     "providers": "Providers",
     "customers": "Customers",
     "logout": "Logout",
-    "inventory": "Inventory"
+    "inventory": "Inventory",
+    "english": "English",
+    "arabic": "العربية"
   },
   "statusBadge": {
     "CONFIRMED": "Confirmed",
@@ -247,5 +249,41 @@
     "total": "Total"
   },
   "offline": "Offline",
-  "offlineDescription": "You are offline and this page is not cached."
+  "offlineDescription": "You are offline and this page is not cached.",
+  "retry": "Retry",
+  "search": "Search",
+  "searchPlaceholder": "Search by buyer name or amount",
+  "productNameLabel": "Product Name (Search or New)",
+  "confirmNewProduct": "This product does not exist in your catalog. A new product will be created automatically.",
+  "dontAskAgain": "Don't ask me again",
+  "costPriceChanged": "Cost price changed from {oldPrice} to {newPrice}.",
+  "updateCostPrice": "Update product cost price?",
+  "sellPriceChanged": "Sell price changed from {oldPrice} to {newPrice}.",
+  "updateSellPrice": "Update product sell price?",
+  "continue": "Continue",
+  "cancel": "Cancel",
+  "type": "Type",
+  "completed": "Completed",
+  "stockOut": "Out",
+  "stockLow": "Low ({stock})",
+  "stockOk": "In Stock ({stock})",
+  "sync": {
+    "offline": "Offline",
+    "offlineWithPending": "Offline — {count} pending",
+    "syncing": "Syncing…",
+    "error": "Sync error — {count} failed",
+    "pending": "{count} pending",
+    "synced": "Synced",
+    "conflictTitle": "Sync Conflict",
+    "conflictMessage": "A conflict was detected while syncing. Your offline changes were not applied.",
+    "conflictDetail": "Please review and reconcile this manually with your admin.",
+    "understood": "Understood"
+  },
+  "customers": {
+    "title": "Customers",
+    "subtitle": "Customer ledger and debt tracking.",
+    "totalSpent": "Total Spent",
+    "pendingBalance": "Pending Balance",
+    "lastVisit": "Last Visit"
+  }
 }
